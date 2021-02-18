@@ -2,8 +2,8 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "C/C++: clang++ build active file",
-            "command": "/usr/bin/clang++",
+            "label": "C/C++: g++ build active file",
+            "command": "/usr/bin/g++-10",
             "args": [
                 "-g",
                 "${file}",
