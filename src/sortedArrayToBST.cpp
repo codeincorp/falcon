@@ -33,4 +33,5 @@ int main()
 {
     vector<int> nums1 = { -10,-3,0,5,9,10};
     TreeNode* tree1 = sortedArrayToBST(nums1);
+    cout << ":)" << endl;
 }
