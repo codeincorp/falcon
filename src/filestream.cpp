@@ -9,7 +9,7 @@ int main()
     fstream fs("/home/yesarang/data.csv", ios_base::in);
 
     string s;
-    while (getline(fs, s)) {
+    while (!getline(fs, s).eof()) {
         cout << s << endl;
     }
 }
