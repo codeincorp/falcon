@@ -1,9 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <ostream>
-#include <cassert>
 #include <string>
-#include <error.h>
 #include <vector>
 
 using namespace std;
@@ -32,14 +29,20 @@ vector<string> parse_line(const string& line) {
     return strs;
 }
 
-int main(string fileName) {
-  //file name
-    string name = fileName;
-    //string name1 = "list.txt";
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        cout << "file name is not specified\n";
+        return -1;
+    }
+
+    string name = argv[1];
 
     fstream ost;
-   
     ost.open(name, fstream::in);
+    if(!ost.is_open()) {
+        cout << "failed to open file: " + name << endl;
+        return -2;
+    }
 
     string reading;
     vector<string> fields;
@@ -56,6 +59,4 @@ int main(string fileName) {
     }
     
     ost.close();
-
-    
 }
