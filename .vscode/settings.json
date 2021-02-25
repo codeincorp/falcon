@@ -4,6 +4,16 @@
         "iosfwd": "cpp",
         "fstream": "cpp",
         "typeindex": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "vector": "cpp",
+        "list": "cpp",
+        "set": "cpp",
+        "map": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "algorithm": "cpp",
+        "memory": "cpp",
+        "string": "cpp",
+        "array": "cpp",
     }
 }
