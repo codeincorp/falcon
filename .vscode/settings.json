@@ -15,5 +15,8 @@
         "memory": "cpp",
         "string": "cpp",
         "array": "cpp",
+        "iomanip": "cpp",
+        "*.tcc": "cpp",
+        "tuple": "cpp"
     }
 }
