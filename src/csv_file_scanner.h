@@ -50,6 +50,12 @@ public:
     };
 
 private:
+    /**
+     * @brief Construct a new CSV File Scanner object
+     * 
+     * @param metadata 
+     * @param lines 
+     */
     CsvFileScanner(const Metadata& metadata, const std::vector<std::string>& lines)
         : metadata_(metadata)
         , lines_(lines)

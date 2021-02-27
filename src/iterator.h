@@ -24,6 +24,9 @@ struct Iterator {
      */
     virtual void open() = 0;
 
+    /**
+     * @brief 
+     */
     virtual void reopen() = 0;
 
     /**
@@ -43,19 +46,37 @@ struct Iterator {
      */
     virtual std::optional<std::vector<std::any>> processNext() = 0;
 
+    /**
+     * @brief 
+     */
     virtual void close() = 0;
 
+    /**
+     * @brief Get the Metadata object
+     * 
+     * @return const Metadata& 
+     */
     virtual const Metadata& getMetadata() const = 0;
 
+    /**
+     * @brief Destroy the Iterator object
+     * 
+     * Declare it virtual so that each iterator type can implement its own
+     * destroy logic.
+     */
     virtual ~Iterator() {}
 };
 
 /**
  * @brief The factory method that creates any type of iterator.
  * 
- * @tparam T 
- * @tparam Args_ 
- * @param args 
+ * This factory function must be the friend function of all iterators and
+ * each iterator class' constructor must be private so that iterators can be
+ * created only through this factory function.
+ * 
+ * @tparam T Type of iterator to be created
+ * @tparam Args_ Types of arguments for T constructor
+ * @param args Arguments for T constructor
  * @return std::unique_ptr<Iterator> 
  */
 template <typename T, typename... Args_>

@@ -39,7 +39,9 @@ inline std::any convert_to(const any_converter_map& any_converters, const std::t
  
 extern any_converter_map any_converters;
 
+extern const std::type_index void_ti;
 extern const std::type_index int_ti;
+extern const std::type_index uint_ti;
 extern const std::type_index float_ti;
 extern const std::type_index string_ti;
 extern const std::type_index double_ti;
