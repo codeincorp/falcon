@@ -13,6 +13,7 @@
 #include "metadata.h"
 #include "iterator.h"
 #include "csv_file_scanner.h"
+#include "projector.h"
 #include "to_any_converter.h"
 
 template<class T, class F>
@@ -88,9 +89,14 @@ int main()
     };
 
     auto scanner = make_iterator<CsvFileScanner>(metadata, lines);
-    scanner->open();
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
+    
+    // Project only "a" & "c" columns.
+    vector<string> columns{"a", "c"};
+    // Combine the projector with the scanner.
+    auto projector = make_iterator<Projector>(columns, scanner);
+    projector->open();
+    while (projector->hasMore()) {
+        auto row = projector->processNext();
         if (row.has_value()) {
             cout << row.value() << "\n";
         }
