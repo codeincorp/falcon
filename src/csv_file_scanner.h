@@ -11,6 +11,9 @@
 
 namespace codein {
 
+/**
+ * @brief CSV file scanner
+ */
 class CsvFileScanner : public Iterator {
 public:
     template <typename T, typename... Args_>
