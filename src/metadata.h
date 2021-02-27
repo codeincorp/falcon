@@ -19,7 +19,7 @@ struct FieldMetaInfo {
     {}
 
     FieldMetaInfo()
-        : FieldMetaInfo("", void_ti)
+        : FieldMetaInfo("", tiVoid)
     {}
 };
 

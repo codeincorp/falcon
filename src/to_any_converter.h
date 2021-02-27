@@ -8,9 +8,16 @@
 
 namespace codein {
 
+/**
+ * @brief Make a type_index&converter to any pair to register the converter for a specific type.
+ * 
+ * @tparam T The type of value which the string is converted into
+ * @param f The converter function which convert string into a value of T
+ * @return a pair of type_index & converter
+ */
 template<class T>
 constexpr std::pair<const std::type_index, std::function<std::any(const std::string&)>>
-    to_any_converter(const std::function<T(const std::string&)> f)
+    toAnyConverter(const std::function<T(const std::string&)> f)
 {
     return {
         std::type_index(typeid(T)),
@@ -20,15 +27,28 @@ constexpr std::pair<const std::type_index, std::function<std::any(const std::str
         }
     };
 }
- 
-using any_converter_map = std::unordered_map<
+
+/**
+ * @brief Map between type index and converter function.
+ */
+using anyConverterMap = std::unordered_map<
     std::type_index,
     std::function<std::any(const std::string&)>
 >;
 
-inline std::any convert_to(const any_converter_map& any_converters, const std::type_index& ti, const std::string& s)
+/**
+ * @brief Convert a string into ti type which is mapped to a certain type.
+ *
+ * @param anyConverters Table for converter functions.
+ * @param ti Type index
+ * @param s String value
+ * @return Value of type std::any. The type of return value cannot be known in advance.
+ *   So, the converted value is contained in any type though each converter
+ *   converts a string into a specific type according to ti. 
+ */
+inline std::any convertTo(const anyConverterMap& anyConverters, const std::type_index& ti, const std::string& s)
 {
-    if (const auto it = any_converters.find(ti); it != any_converters.cend()) {
+    if (const auto it = anyConverters.find(ti); it != anyConverters.cend()) {
         return it->second(s);
     }
 
@@ -37,13 +57,13 @@ inline std::any convert_to(const any_converter_map& any_converters, const std::t
     return std::any();
 }
  
-extern any_converter_map any_converters;
+extern anyConverterMap anyConverters;
 
-extern const std::type_index void_ti;
-extern const std::type_index int_ti;
-extern const std::type_index uint_ti;
-extern const std::type_index float_ti;
-extern const std::type_index string_ti;
-extern const std::type_index double_ti;
+extern const std::type_index tiVoid;
+extern const std::type_index tiInt;
+extern const std::type_index tiUint;
+extern const std::type_index tiFloat;
+extern const std::type_index tiDouble;
+extern const std::type_index tiString;
 
 } // namespace codein

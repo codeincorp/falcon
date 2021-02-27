@@ -78,9 +78,9 @@ ostream& operator<<(ostream& os, const vector<any>& va)
 int main()
 {
     Metadata metadata{
-        { "a", int_ti },
-        { "b", float_ti },
-        { "c", string_ti },
+        { "a", tiInt },
+        { "b", tiFloat },
+        { "c", tiString },
     };
     vector<string> lines{
         "1,1.1,Yoonsoo Kim",
