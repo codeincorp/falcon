@@ -93,7 +93,7 @@ int main()
     // Project only "a" & "c" columns.
     vector<string> columns{"a", "c"};
     // Combine the projector with the scanner.
-    auto projector = make_iterator<Projector>(columns, scanner);
+    auto projector = make_iterator<Projector>(columns, std::move(scanner));
     projector->open();
     while (projector->hasMore()) {
         auto row = projector->processNext();
