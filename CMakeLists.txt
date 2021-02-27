@@ -13,24 +13,22 @@ set(HEADERS
     src/metadata.h
     src/iterator.h
     src/csv_file_scanner.h
+    src/to_any_converter.h
+    src/any_visitor.h
     src/projector.h
 )
 
 set(SOURCES
-    src/csv_query.cpp
     src/csv_file_scanner.cpp
     src/to_any_converter.cpp
+    src/any_visitor.cpp
     src/projector.cpp
 )
 
-add_executable(csv_query
-    src/csv_query.cpp
-    src/csv_file_scanner.cpp
-    src/to_any_converter.cpp
-    src/projector.cpp
-)
+add_executable(csv_query src/csv_query.cpp ${SOURCES} ${HEADERS})
 
-add_library(csvqry)
+add_library(csvqry STATIC ${SOURCES} ${HEADERS})
+
 add_subdirectory(googletest)
 add_subdirectory(test)
 
