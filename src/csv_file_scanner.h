@@ -11,11 +11,14 @@
 
 namespace codein {
 
+/**
+ * @brief CSV file scanner iterator. Scan the given CSV-formatted file.
+ */
 class CsvFileScanner : public Iterator {
 public:
     template <typename T, typename... Args_>
     friend std::unique_ptr<Iterator>
-    make_iterator(Args_&&...);
+    makeIterator(Args_&&...);
 
     void open() override
     {
@@ -47,6 +50,13 @@ public:
     };
 
 private:
+    /**
+     * @brief Construct a new CSV File Scanner object.
+     * Should not be used directly. Instead, make_iterator() should be used.
+     * 
+     * @param metadata
+     * @param lines
+     */
     CsvFileScanner(const Metadata& metadata, const std::vector<std::string>& lines)
         : metadata_(metadata)
         , lines_(lines)

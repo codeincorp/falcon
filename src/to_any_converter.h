@@ -8,9 +8,16 @@
 
 namespace codein {
 
+/**
+ * @brief Make a type_index&converter to any pair to register the converter for a specific type.
+ * 
+ * @tparam T The type of value which the string is converted into
+ * @param f The converter function which convert string into a value of T
+ * @return a pair of type_index & converter
+ */
 template<class T>
 constexpr std::pair<const std::type_index, std::function<std::any(const std::string&)>>
-    to_any_converter(const std::function<T(const std::string&)> f)
+    toAnyConverter(const std::function<T(const std::string&)> f)
 {
     return {
         std::type_index(typeid(T)),
@@ -20,15 +27,29 @@ constexpr std::pair<const std::type_index, std::function<std::any(const std::str
         }
     };
 }
- 
-using any_converter_map = std::unordered_map<
+
+/**
+ * @brief Type alias for map between type index and string-to-value converter function.
+ */
+using AnyConverterMap = std::unordered_map<
     std::type_index,
     std::function<std::any(const std::string&)>
 >;
 
-inline std::any convert_to(const any_converter_map& any_converters, const std::type_index& ti, const std::string& s)
+/**
+ * @brief Convert a string into ti type which is mapped to a certain value type
+ * such as int/float/string.
+ *
+ * @param anyConverters Table for converter functions.
+ * @param ti Type index
+ * @param s String value
+ * @return Value of type std::any. The type of return value cannot be known in advance.
+ *   So, the converted value is contained in any type though each converter
+ *   converts a string into a specific type according to ti. 
+ */
+inline std::any convertTo(const AnyConverterMap& anyConverters, const std::type_index& ti, const std::string& s)
 {
-    if (const auto it = any_converters.find(ti); it != any_converters.cend()) {
+    if (const auto it = anyConverters.find(ti); it != anyConverters.cend()) {
         return it->second(s);
     }
 
@@ -36,12 +57,26 @@ inline std::any convert_to(const any_converter_map& any_converters, const std::t
 
     return std::any();
 }
- 
-extern any_converter_map any_converters;
 
-extern const std::type_index int_ti;
-extern const std::type_index float_ti;
-extern const std::type_index string_ti;
-extern const std::type_index double_ti;
+/**
+ * @brief The hash table between type and string-to-value converter function.
+ * Converter function's return type is std::any which can contain any value inside it.
+ * FieldMetadataInfo provides type info with typeIndex and the type info can be used
+ * to convert a string into a value of that type.
+ */
+extern AnyConverterMap anyConverters;
+
+/// Type index for void type.
+extern const std::type_index tiVoid;
+/// Type index for int type.
+extern const std::type_index tiInt;
+/// Type index for uint type.
+extern const std::type_index tiUint;
+/// Type index for float type.
+extern const std::type_index tiFloat;
+/// Type index for double type.
+extern const std::type_index tiDouble;
+/// Type index for string type.
+extern const std::type_index tiString;
 
 } // namespace codein

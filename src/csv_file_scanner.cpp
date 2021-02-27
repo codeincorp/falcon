@@ -47,7 +47,7 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
 
     std::vector<std::any> r;
     for (size_t i = 0; i < metadata_.size(); ++i) {
-        r.emplace_back(convert_to(any_converters, metadata_[i].typeIndex, fields[i]));
+        r.emplace_back(convertTo(anyConverters, metadata_[i].typeIndex, fields[i]));
     }
 
     return std::move(r);

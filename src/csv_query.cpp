@@ -21,7 +21,7 @@ constexpr std::pair<
     const std::type_index,
     std::function<std::ostream& (std::ostream&, const std::any&)>
 >
-to_any_visitor(F const &f)
+toAnyVisitor(F const &f)
 {
     return {
         std::type_index(typeid(T)),
@@ -34,23 +34,23 @@ to_any_visitor(F const &f)
     };
 }
  
-using any_visitor_map = std::unordered_map<
+using AnyVisitorMap = std::unordered_map<
     std::type_index,
     std::function<std::ostream&(std::ostream&, const std::any&)>
 >;
 
 template<class T, class F>
-inline void register_any_visitor(any_visitor_map& any_visitors, F const& f)
+inline void registerAnyVisitor(AnyVisitorMap& any_visitors, F const& f)
 {
     std::cout << "Register visitor for type "
               << std::quoted(typeid(T).name()) << '\n';
-    any_visitors.insert(to_any_visitor<T>(f));
+    any_visitors.insert(toAnyVisitor<T>(f));
 }
  
-static any_visitor_map any_visitors {
-    to_any_visitor<int>([](std::ostream& os, int x){ os << x; }),
-    to_any_visitor<float>([](std::ostream& os, float x){ os << x; }),
-    to_any_visitor<std::string>([](std::ostream& os, std::string x){ os << x; }),
+static AnyVisitorMap any_visitors {
+    toAnyVisitor<int>([](std::ostream& os, int x){ os << x; }),
+    toAnyVisitor<float>([](std::ostream& os, float x){ os << x; }),
+    toAnyVisitor<std::string>([](std::ostream& os, std::string x){ os << x; }),
 };
 
 std::ostream& operator<<(std::ostream& os, const std::any& a)
@@ -78,9 +78,9 @@ ostream& operator<<(ostream& os, const vector<any>& va)
 int main()
 {
     Metadata metadata{
-        { "a", int_ti },
-        { "b", float_ti },
-        { "c", string_ti },
+        { "a", tiInt },
+        { "b", tiFloat },
+        { "c", tiString },
     };
     vector<string> lines{
         "1,1.1,Yoonsoo Kim",
@@ -88,12 +88,12 @@ int main()
         "3,3.3,Yeeun Kim",
     };
 
-    auto scanner = make_iterator<CsvFileScanner>(metadata, lines);
+    auto scanner = makeIterator<CsvFileScanner>(metadata, lines);
     
     // Project only "a" & "c" columns.
     vector<string> columns{"a", "c"};
     // Combine the projector with the scanner.
-    auto projector = make_iterator<Projector>(columns, std::move(scanner));
+    auto projector = makeIterator<Projector>(columns, std::move(scanner));
     projector->open();
     while (projector->hasMore()) {
         auto row = projector->processNext();
