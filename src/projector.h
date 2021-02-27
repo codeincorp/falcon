@@ -14,7 +14,7 @@ class Projector : public Iterator {
 public:
     template <typename T, typename... Args_>
     friend std::unique_ptr<Iterator>
-    make_iterator(Args_&...);
+    make_iterator(Args_&&...);
 
     void open() override
     {
