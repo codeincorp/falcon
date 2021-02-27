@@ -10,14 +10,16 @@
 
 namespace codein {
 
-/** Projection iterator. Selects columns from input columns */
+/**
+ * @brief Projection iterator. Selects columns from input columns.
+ */
 class Projector : public Iterator {
 public:
     template <typename T, typename... Args_>
     friend std::unique_ptr<Iterator>
-    make_iterator(Args_&&...);
+    makeIterator(Args_&&...);
 
-    /** Just open the child. */
+    /// Just open the child.
     void open() override
     {
         child_->open();

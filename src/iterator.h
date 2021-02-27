@@ -52,9 +52,9 @@ struct Iterator {
     virtual void close() = 0;
 
     /**
-     * @brief Get the Metadata object
+     * @brief Get the metadata information about output data.
      * 
-     * @return const Metadata& 
+     * @return Metadata about output data
      */
     virtual const Metadata& getMetadata() const = 0;
 
@@ -70,8 +70,8 @@ struct Iterator {
 /**
  * @brief The factory method that creates any type of iterator.
  * 
- * This factory function must be the friend function of all iterators and
- * each iterator class' constructor must be private so that iterators can be
+ * This factory function must be a friend function of all iterators and
+ * each iterator's constructor must be private so that iterators can be
  * created only through this factory function.
  * 
  * @tparam T Type of iterator to be created
@@ -80,7 +80,7 @@ struct Iterator {
  * @return std::unique_ptr<Iterator> 
  */
 template <typename T, typename... Args_>
-static std::unique_ptr<Iterator> make_iterator(Args_&&... args)
+static std::unique_ptr<Iterator> makeIterator(Args_&&... args)
 {
     return std::unique_ptr<Iterator>{new T(std::forward<Args_>(args)...)};
 }

@@ -4,7 +4,7 @@
 
 namespace codein {
 
-anyConverterMap anyConverters {
+AnyConverterMap anyConverters {
     toAnyConverter<int>([](const std::string& s){ return stoi(s); }),
     toAnyConverter<unsigned>([](const std::string& s){ return static_cast<unsigned>(stoul(s)); }),
     toAnyConverter<float>([](const std::string& s){ return stof(s); }),

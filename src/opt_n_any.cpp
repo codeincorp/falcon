@@ -15,7 +15,7 @@
  
 template<class T, class F>
 constexpr std::pair<const std::type_index, std::function<void(std::any const&)>>
-    to_any_visitor(F const &f)
+    toAnyVisitor(F const &f)
 {
     return {
         std::type_index(typeid(T)),
@@ -30,10 +30,10 @@ constexpr std::pair<const std::type_index, std::function<void(std::any const&)>>
     };
 }
  
-using any_visitor_map = std::unordered_map<
+using AnyVisitorMap = std::unordered_map<
     std::type_index, std::function<void(std::any const&)>>;
 
-inline void process(const any_visitor_map& any_visitor, const std::any& a)
+inline void process(const AnyVisitorMap& any_visitor, const std::any& a)
 {
     if (const auto it = any_visitor.find(std::type_index(a.type()));
         it != any_visitor.cend()) {
@@ -44,11 +44,11 @@ inline void process(const any_visitor_map& any_visitor, const std::any& a)
 }
  
 template<class T, class F>
-    inline void register_any_visitor(any_visitor_map& any_visitor, F const& f)
+    inline void registerAnyVisitor(AnyVisitorMap& any_visitor, F const& f)
 {
     std::cout << "Register visitor for type "
               << std::quoted(typeid(T).name()) << '\n';
-    any_visitor.insert(to_any_visitor<T>(f));
+    any_visitor.insert(toAnyVisitor<T>(f));
 }
  
 struct my_type {
@@ -58,15 +58,15 @@ struct my_type {
 
 auto main() -> int
 {
-    static any_visitor_map any_visitor {
-        to_any_visitor<void>([]{ std::cout << "{}"; }),
-        to_any_visitor<int>([](int x){ std::cout << x; }),
-        to_any_visitor<unsigned>([](unsigned x){ std::cout << x; }),
-        to_any_visitor<float>([](float x){ std::cout << x; }),
-        to_any_visitor<double>([](double x){ std::cout << x; }),
-        to_any_visitor<char const*>([](char const *s)
+    static AnyVisitorMap any_visitor {
+        toAnyVisitor<void>([]{ std::cout << "{}"; }),
+        toAnyVisitor<int>([](int x){ std::cout << x; }),
+        toAnyVisitor<unsigned>([](unsigned x){ std::cout << x; }),
+        toAnyVisitor<float>([](float x){ std::cout << x; }),
+        toAnyVisitor<double>([](double x){ std::cout << x; }),
+        toAnyVisitor<char const*>([](char const *s)
             { std::cout << std::quoted(s); }),
-        to_any_visitor<std::string>([](std::string x){ std::cout << std::quoted(x); })
+        toAnyVisitor<std::string>([](std::string x){ std::cout << std::quoted(x); })
         // ... add more handlers for your types ...
     };
  
@@ -82,7 +82,7 @@ auto main() -> int
     process(any_visitor, std::any(0xFULL)); //< Unregistered type "y" (unsigned long long)
     std::cout << '\n';
  
-    register_any_visitor<unsigned long long>(any_visitor, [](auto x) {
+    registerAnyVisitor<unsigned long long>(any_visitor, [](auto x) {
         std::cout << std::hex << std::showbase << x; 
         std::cout << std::dec << std::noshowbase;
     });

@@ -8,10 +8,12 @@
 
 namespace codein {
 
-/** Metadata information for a field such as field name and field type */
+/**
+ * @brief Metadata information for a field such as field name and field type
+ */
 struct FieldMetaInfo {
-    std::string fieldName; /** field name */
-    std::type_index typeIndex; /** field type in terms of type index */
+    std::string fieldName;
+    std::type_index typeIndex;
 
     FieldMetaInfo(const std::string& fieldName, std::type_index typeIndex)
         : fieldName(fieldName)
