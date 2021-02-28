@@ -47,13 +47,20 @@ using AnyConverterMap = std::unordered_map<
  *   So, the converted value is contained in any type though each converter
  *   converts a string into a specific type according to ti. 
  */
-inline std::any convertTo(const AnyConverterMap& anyConverters, const std::type_index& ti, const std::string& s)
+inline std::any convertTo(
+    const AnyConverterMap& anyConverters,
+    const std::type_index& ti,
+    const std::string& s
+) noexcept
 {
-    if (const auto it = anyConverters.find(ti); it != anyConverters.cend()) {
-        return it->second(s);
+    try {
+        if (const auto it = anyConverters.find(ti); it != anyConverters.cend()) {
+            return it->second(s);
+        }
     }
-
-    assert(!"unsupported type");
+    catch (...) {
+        // Absorb any exceptions and return null any value instead.
+    }
 
     return std::any();
 }
