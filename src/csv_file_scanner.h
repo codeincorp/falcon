@@ -11,6 +11,8 @@
 
 namespace codein {
 
+std::vector<std::string> parse_line(const std::string& line);
+
 /**
  * @brief CSV file scanner iterator. Scan the given CSV-formatted file.
  */
@@ -23,7 +25,7 @@ public:
     void open() override
     {
         it_ = lines_.cbegin();
-    };
+    }
 
     void reopen() override {};
 
@@ -37,17 +39,17 @@ public:
     void close() override
     {
         it_ = lines_.cend();
-    };
+    }
 
     const Metadata& getMetadata() const override
     {
         return metadata_;
-    };
+    }
 
     ~CsvFileScanner() override
     {
         it_ = lines_.cend();
-    };
+    }
 
 private:
     /**
