@@ -32,3 +32,21 @@ TEST(AnyVisitorTests, SuccessfulCases)
     pos = str.find("abc", pos);
     EXPECT_NE(pos, string::npos) << "output = " << str;
 }
+
+TEST(AnyVisitorTests, FailureCases)
+{
+    stringstream sstrm;
+    vector<any> va{1ull, LDBL_MAX, INT64_MIN};
+
+    sstrm << va;
+    string str = sstrm.str();
+
+    auto pos = str.find("1", 0);
+    EXPECT_EQ(pos, string::npos) << "output = " << str;
+
+    pos = str.find(to_string(LDBL_MAX), 0);
+    EXPECT_EQ(pos, string::npos) << "output = " << str;
+
+    pos = str.find(to_string(INT64_MIN), 0);
+    EXPECT_EQ(pos, string::npos) << "output = " << str;
+}

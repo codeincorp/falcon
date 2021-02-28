@@ -23,7 +23,7 @@ public:
     void open() override
     {
         it_ = lines_.cbegin();
-    };
+    }
 
     void reopen() override {};
 
@@ -37,17 +37,17 @@ public:
     void close() override
     {
         it_ = lines_.cend();
-    };
+    }
 
     const Metadata& getMetadata() const override
     {
         return metadata_;
-    };
+    }
 
     ~CsvFileScanner() override
     {
         it_ = lines_.cend();
-    };
+    }
 
 private:
     /**
