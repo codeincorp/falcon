@@ -11,6 +11,8 @@
 
 namespace codein {
 
+std::vector<std::string> parse_line(const std::string& line);
+
 /**
  * @brief CSV file scanner iterator. Scan the given CSV-formatted file.
  */

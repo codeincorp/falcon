@@ -8,6 +8,7 @@ set(TEST_SOURCES
     CsvFileScannerTest.cpp
     any_converter_test.cpp
     any_visitor_test.cpp
+    projector_test.cpp
 )
 
 add_executable(${THIS} ${TEST_SOURCES})
