@@ -9,7 +9,7 @@
 
 namespace codein {
 
-template<class T, class F>
+template <typename T, typename F>
 constexpr std::pair<
     const std::type_index,
     std::function<std::ostream& (std::ostream&, const std::any&)>

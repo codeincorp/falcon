@@ -8,7 +8,9 @@ namespace codein {
 
 AnyVisitorMap anyVisitors {
     toAnyVisitor<int>([](std::ostream& os, int x){ os << x; }),
+    toAnyVisitor<uint>([](std::ostream& os, uint x){ os << x; }),
     toAnyVisitor<float>([](std::ostream& os, float x){ os << x; }),
+    toAnyVisitor<double>([](std::ostream& os, double x){ os << x; }),
     toAnyVisitor<std::string>([](std::ostream& os, std::string x){ os << x; }),
 };
 
