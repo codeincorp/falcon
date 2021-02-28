@@ -15,9 +15,12 @@ namespace codein {
  * @param f The converter function which convert string into a value of T
  * @return a pair of type_index & converter
  */
-template<class T>
-constexpr std::pair<const std::type_index, std::function<std::any(const std::string&)>>
-    toAnyConverter(const std::function<T(const std::string&)> f)
+template <typename T>
+constexpr std::pair<
+    const std::type_index,
+    std::function<std::any(const std::string&)>
+>
+toAnyConverter(const std::function<T(const std::string&)> f)
 {
     return {
         std::type_index(typeid(T)),
