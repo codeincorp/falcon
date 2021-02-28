@@ -11,7 +11,9 @@
 
 namespace codein {
 
-std::vector<std::string> parse_line(const std::string& line);
+std::vector<std::string> parseLine(const std::string& line);
+std::type_index convertToTypeid(const std::string& typeName);
+Metadata parseLineMetadata(const std::string& line);
 
 /**
  * @brief CSV file scanner iterator. Scan the given CSV-formatted file.
@@ -65,9 +67,13 @@ private:
         , it_(lines_.cend())
     {};
 
+    CsvFileScanner(const std::string& metadataFileName, const std::string& dataFileName);
+
     Metadata metadata_;
     std::vector<std::string> lines_;
     std::vector<std::string>::const_iterator it_;
 };
+
+class InvalidMetadata {};
 
 } // namespace codein
