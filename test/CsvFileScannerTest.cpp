@@ -47,6 +47,13 @@ TEST(CsvFileScannerTests, BasicTest)
 TEST(CsvFileScannerTests, ConvertToTypeidTest)
 {
     EXPECT_EQ(convertToTypeid("int"), tiInt);
+    EXPECT_EQ(convertToTypeid("double"), tiDouble);
+    EXPECT_EQ(convertToTypeid("string"), tiString);
+    EXPECT_EQ(convertToTypeid("float"), tiFloat);
+    EXPECT_EQ(convertToTypeid("uint"), tiUint);
+    EXPECT_EQ(convertToTypeid("i nt"), tiVoid);
+    EXPECT_EQ(convertToTypeid("type"), tiVoid);
+    EXPECT_EQ(convertToTypeid("vector"), tiVoid);
 }
 
 TEST(CsvFileScannerTests, ParseLineTest) {
