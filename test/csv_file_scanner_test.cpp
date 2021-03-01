@@ -178,5 +178,4 @@ TEST(CsvFileScannerTests, ParseLineMetadataTest)
     //empty field name
     EXPECT_THROW(parseLineMetadata("/int"), InvalidMetadata);
     EXPECT_THROW(parseLineMetadata("       /string"), InvalidMetadata);
-        
 }
