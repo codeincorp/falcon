@@ -28,9 +28,9 @@ int main()
         { "c", tiString },
     };
     vector<string> lines{
-        "1,1.1,Yoonsoo Kim",
-        "2,2.2,Youngjun Kim",
-        "3,3.3,Yeeun Kim",
+        "1,1.1,John Smith",
+        "2,2.2,Alex Smith",
+        "3,3.3,Alex Swanson",
     };
 
     auto scanner = makeIterator<CsvFileScanner>(metadata, lines);
