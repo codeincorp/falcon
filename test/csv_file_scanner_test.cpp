@@ -57,7 +57,7 @@ TEST(CsvFileScannerTests, ConvertToTypeidTest)
 }
 
 TEST(CsvFileScannerTests, ParseLineTest) {
-    //normal case
+    // normal case
     vector<string> expectedLine{
         "field1",
         "field2",
@@ -66,21 +66,21 @@ TEST(CsvFileScannerTests, ParseLineTest) {
     vector<string> actualLine = parseLine(" field1, field2, field3  ");
     EXPECT_EQ(expectedLine, actualLine);
 
-    //empty line
+    // empty line
     vector<string> expectedLine1 {
         ""
     };
     actualLine = parseLine("");
     EXPECT_EQ(expectedLine1, actualLine);
 
-    //space bars only
+    // space bars only
     vector<string> expectedLine2 {
         ""
     };
     actualLine = parseLine("       ");
     EXPECT_EQ(expectedLine2, actualLine);
 
-    //commas only
+    // commas only
     vector<string> expectedLine3 {
         "",
         "",
@@ -90,7 +90,7 @@ TEST(CsvFileScannerTests, ParseLineTest) {
     actualLine = parseLine(", ,,");
     EXPECT_EQ(expectedLine3, actualLine);
 
-    //spaces between 
+    // spaces between 
     vector<string> expectedLine4 {
         "3 34 5",
         "Jan/14 / 2007",
@@ -100,7 +100,7 @@ TEST(CsvFileScannerTests, ParseLineTest) {
     actualLine = parseLine("3 34 5, Jan/14 / 2007 , location address SSN  ,1");
     EXPECT_EQ(expectedLine4, actualLine);
 
-    //tab character
+    // tab character
     vector<string> expectedLine5 {
         "tab\t orbit",
         "instructor",
@@ -113,7 +113,7 @@ TEST(CsvFileScannerTests, ParseLineTest) {
 
 TEST(CsvFileScannerTests, ParseLineMetadataTest)
 {
-    //true cases
+    // true cases
     Metadata expectedMetadata{
         {"abc", tiFloat},
         {"bcd", tiInt}
@@ -162,7 +162,7 @@ TEST(CsvFileScannerTests, ParseLineMetadataTest)
         EXPECT_EQ(expectedMetadata3[i].typeIndex, actualMetadata[i].typeIndex);
     }
 
-    //tab cases
+    // tab cases
     Metadata expectedMetadata4{
         {"jamMin", tiString},
         {"tori", tiDouble},

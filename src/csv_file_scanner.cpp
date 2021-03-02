@@ -22,7 +22,7 @@ std::vector<std::string> parseLine(const std::string& line)
 
     while (i <= len) {
         if (i == len || line.at(i) == ','){
-            strs.emplace_back(line.substr(left, right-left));
+            strs.emplace_back(line.substr(left, right - left));
             left = 0;
             right = 0;
         }
@@ -95,7 +95,7 @@ Metadata parseLineMetadata(const std::string& line)
         }
         
         reVec.emplace_back(
-            fieldsMetadata[i].substr(0, fieldsMetadata[i].find_last_not_of(" \t", indexOfSeparator-1) + 1),
+            fieldsMetadata[i].substr(0, fieldsMetadata[i].find_last_not_of(" \t", indexOfSeparator - 1) + 1),
             typeIndex
         );
     }
