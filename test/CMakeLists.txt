@@ -5,7 +5,7 @@ set(THIS csv_query_test)
 include_directories(../src)
 
 set(TEST_SOURCES
-    CsvFileScannerTest.cpp
+    csv_file_scanner_test.cpp
     any_converter_test.cpp
     any_visitor_test.cpp
     projector_test.cpp

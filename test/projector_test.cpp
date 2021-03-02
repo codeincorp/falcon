@@ -41,7 +41,7 @@ struct ProjectorTests : public ::testing::Test {
 
 TEST_F(ProjectorTests, SanityTest)
 {
-    auto fields = parse_line(lines[0]);
+    auto fields = parseLine(lines[0]);
     std::vector<std::any> expected;
     for (size_t i = 0; i < metadata.size(); ++i) {
         expected.emplace_back(convertTo(anyConverters, metadata[i].typeIndex, fields[i]));
@@ -81,7 +81,7 @@ TEST_F(ProjectorTests, SelectionTest)
         {"a", tiDouble},
     };
  
-    auto fields = parse_line(lines[0]);
+    auto fields = parseLine(lines[0]);
     std::vector<std::any> expected;
     expected.emplace_back(convertTo(anyConverters, metadata[4].typeIndex, fields[4]));
     expected.emplace_back(convertTo(anyConverters, metadata[2].typeIndex, fields[2]));
