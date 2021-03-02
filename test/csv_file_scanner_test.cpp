@@ -6,6 +6,8 @@
 using namespace std;
 using namespace codein;
 
+bool operator==(const Metadata& lhs, const Metadata& rhs);
+
 TEST(CsvFileScannerTests, BasicTest)
 {
     Metadata metadata{
@@ -37,6 +39,43 @@ TEST(CsvFileScannerTests, BasicTest)
         EXPECT_EQ(i + 1, any_cast<int>(row.value()[0]));
         EXPECT_FLOAT_EQ((i + 1) * 1.1, any_cast<float>(row.value()[1]));
         EXPECT_EQ(names[i], any_cast<string>(row.value()[2]));
+
+        ++i;
+    }
+
+    EXPECT_EQ(i, 3);
+}
+
+TEST(CsvFileScannerTests, FileNameConstructorTest)
+{
+    // Must be same as metadata.txt
+    Metadata expectedMetadata{
+        { "a", tiInt },
+        { "b", tiFloat },
+        { "c", tiDouble },
+        { "d", tiString },
+    };
+    // Must be same as data.csv
+    vector<string> expectedNames{
+        "John Smith",
+        "Alex Smith",
+        "Alex Swanson",
+    };
+
+    auto scanner = makeIterator<CsvFileScanner>("metadata.txt", "data.csv");
+    EXPECT_TRUE(scanner->getMetadata() == expectedMetadata);
+    
+    scanner->open();
+    size_t i = 0;
+    while (scanner->hasMore()) {
+        auto row = scanner->processNext();
+
+        EXPECT_TRUE(row.has_value());
+        EXPECT_TRUE(row.value().size() == expectedMetadata.size());
+        EXPECT_EQ(i + 1, any_cast<int>(row.value()[0]));
+        EXPECT_FLOAT_EQ((i + 1) * 1.1f, any_cast<float>(row.value()[1]));
+        EXPECT_DOUBLE_EQ((i + 1) * 1.1, any_cast<double>(row.value()[2]));
+        EXPECT_EQ(expectedNames[i], any_cast<string>(row.value()[3]));
 
         ++i;
     }

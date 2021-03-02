@@ -11,7 +11,7 @@
 
 namespace codein {
 
-// parseLine will trim extra spaces on both sides of each fields
+// parseLine will trim extra spaces on both sides of each field
 std::vector<std::string> parseLine(const std::string& line)
 {
     int left = 0;
@@ -120,9 +120,12 @@ CsvFileScanner::CsvFileScanner(const std::string& metadataFileName, const std::s
     if (!dfs.is_open()){
         throw NonExistentFile();
     }
+
     while (!dfs.eof()) {
         getline(dfs, reading);
-        lines_.emplace_back(reading);
+        if (!dfs.fail()) {
+            lines_.emplace_back(reading);
+        }
     }
 
     it_ = lines_.cend();
