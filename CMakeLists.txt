@@ -29,7 +29,6 @@ add_executable(csv_query src/csv_query.cpp ${SOURCES} ${HEADERS})
 
 add_library(csvqry STATIC ${SOURCES} ${HEADERS})
 
-# add_subdirectory(googletest)
 add_subdirectory(test)
 
 add_executable(opt_n_any src/opt_n_any.cpp)
