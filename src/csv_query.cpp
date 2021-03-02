@@ -43,7 +43,7 @@ int main()
     while (projector->hasMore()) {
         auto row = projector->processNext();
         if (row.has_value()) {
-            cout << row.value() << "\n";
+//            cout << row.value() << "\n";
         }
     }
 }

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "any_visitor.h"
 #include "csv_file_scanner.h"
 #include "projector.h"
 

@@ -9,6 +9,7 @@
 using namespace std;
 using namespace codein;
 
+/*
 TEST(AnyVisitorTests, SuccessfulCases)
 {
     stringstream sstrm;
@@ -50,3 +51,5 @@ TEST(AnyVisitorTests, FailureCases)
     pos = str.find(to_string(INT64_MIN), 0);
     EXPECT_EQ(pos, string::npos) << "output = " << str;
 }
+
+*/

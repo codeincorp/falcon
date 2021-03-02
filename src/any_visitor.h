@@ -44,9 +44,11 @@ inline void registerAnyVisitor(AnyVisitorMap& anyVisitors, F const& f)
 
 extern AnyVisitorMap anyVisitors;
 
+/*
 std::ostream& operator<<(std::ostream& os, const std::any& a);
 
 std::ostream& operator<<(std::ostream& os, const std::vector<std::any>& va);
+*/
 
 using AnyBinaryComparer = std::function<bool (const std::any&, const std::any&)>;
 
