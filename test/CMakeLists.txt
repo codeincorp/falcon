@@ -11,6 +11,8 @@ set(TEST_SOURCES
     projector_test.cpp
 )
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/metadata.txt ${CMAKE_CURRENT_BINARY_DIR})
+
 add_executable(${THIS} ${TEST_SOURCES})
 target_link_libraries(${THIS} PUBLIC
     gtest
