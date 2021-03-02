@@ -75,5 +75,6 @@ private:
 };
 
 class InvalidMetadata {};
+class NonExistentFile {};
 
 } // namespace codein

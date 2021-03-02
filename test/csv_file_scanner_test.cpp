@@ -94,12 +94,21 @@ TEST(CsvFileScannerTests, ParseLineTest) {
     vector<string> expectedLine4 {
         "3 34 5",
         "Jan/14 / 2007",
-        "14116 11th DR SE",
+        "location address SSN",
         "1"
     };
-    actualLine = parseLine("3 34 5, Jan/14 / 2007 , 14116 11th DR SE  ,1");
+    actualLine = parseLine("3 34 5, Jan/14 / 2007 , location address SSN  ,1");
     EXPECT_EQ(expectedLine4, actualLine);
-    EXPECT_FALSE(false);
+
+    //tab character
+    vector<string> expectedLine5 {
+        "tab\t orbit",
+        "instructor",
+        "computer",
+        "calculator"
+    };
+    actualLine = parseLine("tab\t orbit , instructor,\t\tcomputer,  calculator\t\t");
+    EXPECT_EQ(expectedLine5, actualLine);
 }
 
 TEST(CsvFileScannerTests, ParseLineMetadataTest)
@@ -123,7 +132,7 @@ TEST(CsvFileScannerTests, ParseLineMetadataTest)
     };
     actualMetadata = parseLineMetadata("  real number  /float, quantity   /int, name/    string   ");
     EXPECT_EQ(expectedMetadata1.size(), actualMetadata.size());
-    for (size_t i = 0; i < expectedMetadata.size(); ++i) {
+    for (size_t i = 0; i < expectedMetadata1.size(); ++i) {
         EXPECT_EQ(expectedMetadata1[i].fieldName, actualMetadata[i].fieldName);
         EXPECT_EQ(expectedMetadata1[i].typeIndex, actualMetadata[i].typeIndex);
     }
@@ -135,7 +144,7 @@ TEST(CsvFileScannerTests, ParseLineMetadataTest)
     };
     actualMetadata = parseLineMetadata("pi  /double, e   /double, size/    uint   ");
     EXPECT_EQ(expectedMetadata2.size(), actualMetadata.size());
-    for (size_t i = 0; i < expectedMetadata.size(); ++i) {
+    for (size_t i = 0; i < expectedMetadata2.size(); ++i) {
         EXPECT_EQ(expectedMetadata2[i].fieldName, actualMetadata[i].fieldName);
         EXPECT_EQ(expectedMetadata2[i].typeIndex, actualMetadata[i].typeIndex);
     }
@@ -148,34 +157,49 @@ TEST(CsvFileScannerTests, ParseLineMetadataTest)
     };
     actualMetadata = parseLineMetadata(" velocity / double , x   /int, y/int,read/string");
     EXPECT_EQ(expectedMetadata3.size(), actualMetadata.size());
-    for (size_t i = 0; i < expectedMetadata.size(); ++i) {
+    for (size_t i = 0; i < expectedMetadata3.size(); ++i) {
         EXPECT_EQ(expectedMetadata3[i].fieldName, actualMetadata[i].fieldName);
         EXPECT_EQ(expectedMetadata3[i].typeIndex, actualMetadata[i].typeIndex);
     }
 
-    //Invalid Metadata cases
+    //tab cases
+    Metadata expectedMetadata4{
+        {"jamMin", tiString},
+        {"tori", tiDouble},
+        {"Number", tiInt},
+    };
+    actualMetadata = parseLineMetadata("jamMin\t/string, tori/\tdouble, \tNumber/ int\t\t");
+    EXPECT_EQ(expectedMetadata4.size(), actualMetadata.size());
+    for (size_t i = 0; i < expectedMetadata4.size(); ++i) {
+        EXPECT_EQ(expectedMetadata4[i].fieldName, actualMetadata[i].fieldName);
+        EXPECT_EQ(expectedMetadata4[i].typeIndex, actualMetadata[i].typeIndex);
+    }
 
-    //no slash
-
+    // Invalid Metadata cases
+    // no slash
     EXPECT_THROW(parseLineMetadata("what do you mean"), InvalidMetadata);
 
-    //empty metadata file
+    // empty metadata file
     EXPECT_THROW(parseLineMetadata(""), InvalidMetadata);
+    EXPECT_THROW(parseLineMetadata("\t\t\t\t "), InvalidMetadata);
         
-    //space bars only
+    // blank spaces only
     EXPECT_THROW(parseLineMetadata("     "), InvalidMetadata);
+    EXPECT_THROW(parseLineMetadata("\t\t  \t"),InvalidMetadata);
 
-    //more than one slash
+    // more than one slash
     EXPECT_THROW(parseLineMetadata(" field / int/double"), InvalidMetadata);
 
-    //invalid type name
+    // invalid type name
     EXPECT_THROW(parseLineMetadata("field/i nt"), InvalidMetadata);
     EXPECT_THROW(parseLineMetadata("  field/type  "), InvalidMetadata);
     
-    //empty type name
+    // empty type name
     EXPECT_THROW(parseLineMetadata("onlyField/   "), InvalidMetadata);
+    EXPECT_THROW(parseLineMetadata("field1/\t  "), InvalidMetadata);
 
-    //empty field name
+    // empty field name
     EXPECT_THROW(parseLineMetadata("/int"), InvalidMetadata);
     EXPECT_THROW(parseLineMetadata("       /string"), InvalidMetadata);
+    EXPECT_THROW(parseLineMetadata("\t\t\t,string "), InvalidMetadata);
 }

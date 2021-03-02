@@ -11,6 +11,7 @@
 
 namespace codein {
 
+// parseLine will trim extra spaces on both sides of each fields
 std::vector<std::string> parseLine(const std::string& line)
 {
     int left = 0;
@@ -25,7 +26,7 @@ std::vector<std::string> parseLine(const std::string& line)
             left = 0;
             right = 0;
         }
-        else if (line.at(i) != ' ') {
+        else if (line.at(i) != ' ' && line.at(i) != '\t') {
             if (right == 0) {
                 left = i;
             }
@@ -59,36 +60,42 @@ std::type_index convertToTypeid(const std::string& typeName)
     }
 }
 
+/*
+ * A good metadata line should look like
+ * "field1/type1, field2/type2, field3/type3...."
+ * parseLineMetada should handle possible extra spaces on both ends or between
+ * otherwise it will throw InvalidMetadata exception
+ */
 Metadata parseLineMetadata(const std::string& line)
 {
-    std::vector<std::string> temp = parseLine(line);
+    std::vector<std::string> fieldsMetadata = parseLine(line);
     Metadata reVec;
-    reVec.reserve(temp.size());
+    reVec.reserve(fieldsMetadata.size());
     size_t indexOfSeparator = 0;
     size_t right = 0;
 
-    for (size_t i = 0; i < temp.size(); ++i) {
-        //parseLine already trims extra spaces on both sides
-        indexOfSeparator = temp[i].find('/');
-        //if an lnvalid line does not contain slash or field name or empty string
-        if (indexOfSeparator == std::string::npos ||
-            indexOfSeparator == 0 ) {
+    for (size_t i = 0; i < fieldsMetadata.size(); ++i) {
+        // parseLine already trims extra spaces on both sides
+        indexOfSeparator = fieldsMetadata[i].find('/');
+        // if an lnvalid line does not contain slash or field name or empty string
+        if (indexOfSeparator == std::string::npos || indexOfSeparator == 0) {
             throw InvalidMetadata();
         }
 
-        right = temp[i].find_first_not_of(' ', indexOfSeparator+1);
-        //empty type name
-        if(right == std::string::npos) {
+        right = fieldsMetadata[i].find_first_not_of(" \t", indexOfSeparator + 1);
+        // if type name is empty
+        if (right == std::string::npos) {
             throw InvalidMetadata();
         }
-        auto typeIndex = convertToTypeid(temp[i].substr(right, temp[i].size()-right));
-        //if invalid type name
-        if(typeIndex == tiVoid) {
+        auto typeIndex = convertToTypeid(
+            fieldsMetadata[i].substr(right, fieldsMetadata[i].size() - right));
+        // if type name is invalid
+        if (typeIndex == tiVoid) {
             throw InvalidMetadata();
         }
         
         reVec.emplace_back(
-            temp[i].substr(0, temp[i].find_last_not_of(' ', indexOfSeparator-1)+1),
+            fieldsMetadata[i].substr(0, fieldsMetadata[i].find_last_not_of(" \t", indexOfSeparator-1) + 1),
             typeIndex
         );
     }
@@ -102,21 +109,23 @@ CsvFileScanner::CsvFileScanner(const std::string& metadataFileName, const std::s
     , it_()
 {
     std::fstream mfs(metadataFileName);
+    if (!mfs.is_open()){
+        throw NonExistentFile();
+    }
     std::string reading;
     std::getline(mfs, reading);
     metadata_ = parseLineMetadata(reading);
 
-    // initialize metadata_ from mfs
-
     std::fstream dfs(dataFileName);
-    
+    if (!dfs.is_open()){
+        throw NonExistentFile();
+    }
     while (!dfs.eof()) {
         getline(dfs, reading);
         lines_.emplace_back(reading);
     }
 
     it_ = lines_.cend();
-    // initialize lines_
 }
 
 std::optional<std::vector<std::any>> CsvFileScanner::processNext()
