@@ -2,7 +2,6 @@
 
 #include "any_visitor.h"
 #include "csv_file_scanner.h"
-#include "projector.h"
 
 using namespace std;
 using namespace codein;
@@ -83,6 +82,121 @@ TEST(CsvFileScannerTests, FileNameConstructorTest)
 
     EXPECT_EQ(i, 3);
 }
+
+/*
+TEST(CsvFileScannerTests, FileNameConstructorTest2)
+{
+    Metadata expectedMetadata1{
+        {"product", tiString},
+        {"price", tiFloat},
+        {"quantity", tiInt},
+        {"manufacturer", tiString}
+
+    };
+
+    vector<string> expectedLines{
+        "chapaguri, 2.99 , 600, Nongshim",
+        "shin Ramyun, 1.99, 450, Nongshim",
+        "Jhin Ramyun, 1.89, 777, OTTOGI",
+        "Paldo BiBim Myun, 2.10, 280, Paldo"
+    };
+
+    vector<vector<any>> expectedFields(expectedLines.size());
+    vector<string> fields;
+    for (size_t i = 0; i < expectedLines.size(); ++i) {
+        fields = parseLine(expectedLines[i]);
+
+        for (size_t k = 0; k < expectedMetadata1.size(); ++k) {
+            expectedFields[i].emplace_back(convertTo(
+                anyConverters, expectedMetadata1[i].typeIndex, fields[k]
+                )
+            );
+        }
+    }
+
+    auto scanner = makeIterator<CsvFileScanner>("metadata1.txt", "data1.csv");
+    EXPECT_TRUE(scanner->getMetadata() == expectedMetadata1);
+    // I have no clue
+    
+    
+    size_t i = 0;
+    scanner->open();
+    while(scanner->hasMore()) {
+        auto row = scanner->processNext();
+        
+        EXPECT_TRUE(row.has_value());
+        EXPECT_TRUE(row.value().size() == expectedFields[i].size());
+        for(size_t k = 0; k < expectedFields.size() ; ++k) {
+            EXPECT_TRUE(row.value()[k] == expectedFields[i][k]);
+        }
+        
+        ++i;
+    }
+
+    /*
+    Metadata expectedMetadata2{
+        {"num1", tiInt},
+        {"num2", tiUint},
+        {"presidents", tiString},
+        {"num3", tiFloat},
+        {"names", tiString}
+    };
+
+    vector<vector<string>> expectedNames2{
+        {"Adam smith", "Yoo Jae Suk"},
+        {"george washington", "Psy"},
+        {"Thomas Jefferson", "Gideon"},
+        {"Abraham Lincoln", "Steven"},
+        {"FDR", "Reid"}
+    };
+
+    scanner = makeIterator<CsvFileScanner>("metadata2.txt", "data2.csv");
+    EXPECT_TRUE(scanner->getMetadata() == expectedMetadata2);
+
+    i = 0;
+    while(scanner->hasMore()) {
+        auto row = scanner->processNext();
+
+        EXPECT_EQ(expectedFields[i][0], row.value()[0]);
+        EXPECT_EQ(expectedFields[i][1], row.value()[1]);
+        EXPECT_EQ(expectedFields[i][2], row.value()[2]);
+        EXPECT_EQ(expectedFields[i][3], row.value()[3]);
+
+        ++i;
+    }
+
+    i = 0;
+    while(scanner->hasMore()) {
+        auto row = scanner->processNext();
+
+        EXPECT_TRUE(row.has_value());
+        EXPECT_TRUE(row.value().size() == expectedMetadata1.size());
+        EXPECT_EQ(2 * i, any_cast<int>(row.value()[0]));
+        EXPECT_EQ(3 * i + 3, any_cast<uint>(row.value()[1]));
+        EXPECT_EQ(expectedNames2[i][0], any_cast<string>(row.value()[2]));
+        EXPECT_EQ(1.23 * i + 1.23, any_cast<float>(row.value()[3]));
+        EXPECT_EQ(expectedNames2[i][1], any_cast<string>(row.value()[4]));
+    }
+
+    // non-existent file
+    EXPECT_THROW(makeIterator<CsvFileScanner>("hello.txt", "Danta.csv"), NonExistentFile);
+    EXPECT_THROW(makeIterator<CsvFileScanner>("metadata.txt", "Danta.csv"), NonExistentFile);
+    EXPECT_THROW(makeIterator<CsvFileScanner>("hello.txt", "data.csv"), NonExistentFile);
+
+    // empty file
+    scanner = makeIterator<CsvFileScanner>("empty_file.txt", "empty_file.csv");
+    auto row = scanner->processNext();
+    EXPECT_FALSE(row.has_value());
+
+    // different number of fields
+    scanner = makeIterator<CsvFileScanner>("different_fields.txt", "different_fields.csv");
+    // program should crash
+    // row = scanner->processNext();
+
+    // Invalid file format
+    EXPECT_THROW(makeIterator<CsvFileScanner>("invalid_metadata.txt", "invalid_data.csv"), InvalidMetadata);
+}
+*/
 
 TEST(CsvFileScannerTests, ConvertToTypeidTest)
 {

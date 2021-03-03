@@ -41,7 +41,7 @@ struct ProjectorTests : public ::testing::Test {
 
 TEST_F(ProjectorTests, SanityTest)
 {
-    auto fields = parseLine(lines[0]);
+    vector<string> fields = parseLine(lines[0]);
     std::vector<std::any> expected;
     for (size_t i = 0; i < metadata.size(); ++i) {
         expected.emplace_back(convertTo(anyConverters, metadata[i].typeIndex, fields[i]));
@@ -62,7 +62,7 @@ TEST_F(ProjectorTests, SanityTest)
     optional<vector<any>> actual = projector->processNext();
     ASSERT_TRUE(actual.has_value());
 
-    const auto& val = actual.value();
+    const vector<any>& val = actual.value();
     ASSERT_EQ(val.size(), metadata.size());
     for (size_t i = 0; i < val.size(); ++i) {
         EXPECT_TRUE(type_index(val[i].type()) == metadata[i].typeIndex);

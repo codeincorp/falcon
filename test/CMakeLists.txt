@@ -25,6 +25,8 @@ set(TEST_SOURCES
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/metadata.txt ${CMAKE_CURRENT_BINARY_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data.csv ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/metadata1.txt ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data1.csv ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(${THIS} ${TEST_SOURCES})
 add_dependencies(${THIS} googletest)
