@@ -66,6 +66,7 @@ private:
         : metadata_(metadata)
         , lines_(lines)
         , it_(lines_.cend())
+        , expr_()
     {};
 
     CsvFileScanner(const std::string& metadataFileName,
