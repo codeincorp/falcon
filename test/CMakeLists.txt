@@ -2,6 +2,18 @@ cmake_minimum_required(VERSION 3.0.0)
 
 set(THIS csv_query_test)
 
+include(ExternalProject)
+
+set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/googletest)
+
+ExternalProject_Add(googletest
+    GIT_REPOSITORY https://github.com/google/googletest
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
+)
+
+include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
+link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
+
 include_directories(../src)
 
 set(TEST_SOURCES
@@ -15,6 +27,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/metadata.txt ${CMAKE_CURRENT_BINARY_D
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data.csv ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(${THIS} ${TEST_SOURCES})
+add_dependencies(${THIS} googletest)
 target_link_libraries(${THIS} PUBLIC
     gtest
     gtest_main
