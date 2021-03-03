@@ -9,10 +9,10 @@
 
 namespace codein {
 
-std::any ExpressionNode::eval(const Metadata& metadata, const std::vector<std::any>& data) {
+std::any ExpressionNode::eval(const Metadata& metadata, const std::vector<std::any>& data) const {
     switch (opCode) {
     case OpCode::Ref: {
-        auto name = any_cast<std::string>(std::get<0>(leafOrChildren));
+        auto name = std::any_cast<std::string>(std::get<0>(leafOrChildren));
         for (size_t i = 0; i < metadata.size(); ++i) {
             if (metadata[i].fieldName == name) {
                 return data[i];
@@ -26,9 +26,9 @@ std::any ExpressionNode::eval(const Metadata& metadata, const std::vector<std::a
         break;
     
     case OpCode::Eq: {
-        auto children = std::get<1>(leafOrChildren);
-        auto lhs = children[0];
-        auto rhs = children[1];
+        const std::vector<ExpressionNode>& children = std::get<1>(leafOrChildren);
+        const ExpressionNode& lhs = children[0];
+        const ExpressionNode& rhs = children[1];
         return {lhs.eval(metadata, data) == rhs.eval(metadata, data)};
         break;
     }

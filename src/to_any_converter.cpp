@@ -13,6 +13,7 @@ AnyConverterMap anyConverters {
 };
 
 const std::type_index tiVoid = std::type_index(typeid(void));
+const std::type_index tiBool = std::type_index(typeid(bool));
 const std::type_index tiInt = std::type_index(typeid(int));
 const std::type_index tiUint = std::type_index(typeid(uint));
 const std::type_index tiFloat = std::type_index(typeid(float));

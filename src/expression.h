@@ -10,12 +10,11 @@ namespace codein {
 enum class OpCode {
     Ref,
     Const,
-    NodeStart,
-    Eq = NodeStart,
+    Eq,
 };
 
 struct ExpressionNode {
-    std::any eval(const Metadata& metadata, const std::vector<std::any>& data);
+    std::any eval(const Metadata& metadata, const std::vector<std::any>& data) const;
 
     OpCode opCode;
     std::variant<std::any,

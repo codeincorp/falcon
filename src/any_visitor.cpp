@@ -16,6 +16,7 @@ struct StreamOutputOp {
 };
 
 AnyVisitorMap anyVisitors {
+    toAnyVisitor<bool>(StreamOutputOp<bool>()),
     toAnyVisitor<int>(StreamOutputOp<int>()),
     toAnyVisitor<uint>(StreamOutputOp<uint>()),
     toAnyVisitor<float>(StreamOutputOp<float>()),
@@ -50,6 +51,7 @@ struct EqOp {
 };
 
 AnyBinaryComparerVisitorMap anyEqVisitors{
+    toAnyEqVisitor<bool>(EqOp<bool>()),
     toAnyEqVisitor<int>(EqOp<int>()),
     toAnyEqVisitor<uint>(EqOp<uint>()),
     toAnyEqVisitor<float>(EqOp<float>()),
