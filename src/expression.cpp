@@ -33,6 +33,22 @@ std::any ExpressionNode::eval(const Metadata& metadata, const std::vector<std::a
         break;
     }
 
+    case OpCode::Lt: {
+        const std::vector<ExpressionNode>& children = std::get<1>(leafOrChildren);
+        const ExpressionNode& lhs = children[0];
+        const ExpressionNode& rhs = children[1];
+        return {lhs.eval(metadata, data) < rhs.eval(metadata, data)};
+        break;
+    }
+
+    case OpCode::Add: {
+        const std::vector<ExpressionNode>& children = std::get<1>(leafOrChildren);
+        const ExpressionNode& lhs = children[0];
+        const ExpressionNode& rhs = children[1];
+        return {lhs.eval(metadata, data) + rhs.eval(metadata, data)};
+        break;
+    }
+
     default:
         break;
     }

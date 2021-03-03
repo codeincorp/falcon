@@ -5,6 +5,8 @@
 
 #include "metadata.h"
 
+#pragma once
+
 namespace codein {
 
 enum class OpCode {
@@ -12,6 +14,8 @@ enum class OpCode {
     Ref,
     Const,
     Eq,
+    Lt,
+    Add,
 };
 
 struct ExpressionNode {
