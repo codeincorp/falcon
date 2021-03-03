@@ -1,0 +1,1 @@
+product/string, price/ float, quantity/int  , manufacturer /string

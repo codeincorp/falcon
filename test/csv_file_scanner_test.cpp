@@ -2,7 +2,6 @@
 
 #include "any_visitor.h"
 #include "csv_file_scanner.h"
-#include "projector.h"
 
 using namespace std;
 using namespace codein;
@@ -82,6 +81,125 @@ TEST(CsvFileScannerTests, FileNameConstructorTest)
     }
 
     EXPECT_EQ(i, 3);
+}
+
+TEST(CsvFileScannerTests, FileNameConstructorTest2)
+{
+    Metadata expectedMetadata1{
+        {"product", tiString},
+        {"price", tiFloat},
+        {"quantity", tiInt},
+        {"manufacturer", tiString}
+
+    };
+
+    vector<string> expectedLines{
+        "chapaguri, 2.99 , 600, Nongshim",
+        "shin Ramyun, 1.99, 450, Nongshim",
+        "Jhin Ramyun, 1.89, 777, OTTOGI",
+        "Paldo BiBim Myun, 2.10, 280, Paldo"
+    };
+
+    vector<vector<any>> expectedFields(expectedLines.size());
+    vector<string> fields;
+    for (size_t i = 0; i < expectedLines.size(); ++i) {
+        fields = parseLine(expectedLines[i]);
+
+        for (size_t k = 0; k < expectedMetadata1.size(); ++k) {
+            expectedFields[i].emplace_back(convertTo(
+                anyConverters, expectedMetadata1[k].typeIndex, fields[k]
+                )
+            );
+        }
+    }
+
+    auto scanner = makeIterator<CsvFileScanner>("metadata1.txt", "data1.csv");
+    EXPECT_TRUE(scanner->getMetadata() == expectedMetadata1);
+    
+    size_t i = 0;
+    scanner->open();
+    while (scanner->hasMore()) {
+        auto row = scanner->processNext();
+        
+        const vector<any>& val = row.value();
+        EXPECT_TRUE(row.has_value());
+        EXPECT_TRUE(val.size() == expectedFields[i].size());
+        for (size_t k = 0; k < expectedFields.size() ; ++k) {
+            const auto& actualType = val[k].type();
+            const auto& expectedType = expectedFields[i][k].type();
+            EXPECT_TRUE(actualType == expectedType)
+                << "actual type = " << actualType.name() << ", "
+                << "expected type = " << expectedType.name();
+            EXPECT_TRUE(val[k] == expectedFields[i][k]);
+        }
+        
+        ++i;
+    }
+
+    Metadata expectedMetadata2{
+        {"num1", tiInt},
+        {"num2", tiUint},
+        {"presidents", tiString},
+        {"num3", tiDouble},
+        {"names", tiString}
+    };
+
+    vector<vector<any>> expectedFields2{
+        {0, 3u, "Adam smith"s, 1.23, "Yoo Jae Suk"s},
+        {2, 6u, "george washington"s, 2.46, "Psy"s},
+        {4, 9u, "Thomas Jefferson"s, 3.69, "Gideon"s},
+        {6, 12u, "Abraham Lincoln"s, 4.92, "Steven"s},
+        {8, 15u, "FDR"s, 6.15, "Reid"s}
+    };
+
+    scanner = makeIterator<CsvFileScanner>("metadata2.txt", "data2.csv");
+    EXPECT_TRUE(scanner->getMetadata() == expectedMetadata2);
+    
+    i = 0;
+    scanner->open();
+    while (scanner->hasMore()) {
+        auto row = scanner->processNext();
+
+        EXPECT_TRUE(row.has_value());
+        const vector<any>& val = row.value();
+        EXPECT_TRUE(val.size() == expectedFields2[i].size());
+        for (size_t k = 0; k < 5 ; ++k) {
+            const auto& actualType = val[k].type();
+            const auto& expectedType = expectedFields2[i][k].type();
+            EXPECT_TRUE(actualType == expectedType)
+                << "actual type = " << actualType.name() << ", "
+                << "expected type = " << expectedType.name();
+            EXPECT_TRUE(val[k] == expectedFields2[i][k]);
+        }
+
+        ++i;
+    }
+}
+
+TEST(CsvFileScannerTests, FileNameConstructorFailTests) {
+    
+    // non-existent file
+    EXPECT_THROW(makeIterator<CsvFileScanner>("hello.txt", "Danta.csv"), NonExistentFile);
+    EXPECT_THROW(makeIterator<CsvFileScanner>("metadata.txt", "Danta.csv"), NonExistentFile);
+    EXPECT_THROW(makeIterator<CsvFileScanner>("hello.txt", "data.csv"), NonExistentFile);
+
+    // empty file
+    EXPECT_THROW(makeIterator<CsvFileScanner>("empty_file.txt", "empty_file.csv"), InvalidMetadata);
+
+    // Invalid metadata
+    EXPECT_THROW(makeIterator<CsvFileScanner>("empty_fields_metadata.txt", "empty_fields_data.csv"), InvalidMetadata);
+
+    //To Do: Need to deal with a situation when encountered with different data lin from metadata
+    //Current, CsvFileScanner::processNext() asserts. we can't test the scnario
+    // different number of fields
+    /* auto scanner = makeIterator<CsvFileScanner>("different_fields.txt", "different_fields.csv");
+    scanner->open();
+    // program should crash
+    //EXPECT_THROW(scanner->processNext(), exception);
+
+    // Invalid file format
+    EXPECT_THROW(makeIterator<CsvFileScanner>("invalid_metadata.txt", "invalid_data.csv"), InvalidMetadata);
+    */
 }
 
 TEST(CsvFileScannerTests, ConvertToTypeidTest)

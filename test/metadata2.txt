@@ -1,0 +1,1 @@
+num1/int, num2/uint, presidents/string, num3/double, names/string
