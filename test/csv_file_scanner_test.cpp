@@ -83,7 +83,6 @@ TEST(CsvFileScannerTests, FileNameConstructorTest)
     EXPECT_EQ(i, 3);
 }
 
-
 TEST(CsvFileScannerTests, FileNameConstructorTest2)
 {
     Metadata expectedMetadata1{
@@ -119,13 +118,18 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
     
     size_t i = 0;
     scanner->open();
-    while(scanner->hasMore()) {
+    while (scanner->hasMore()) {
         auto row = scanner->processNext();
         
         const vector<any>& val = row.value();
         EXPECT_TRUE(row.has_value());
         EXPECT_TRUE(val.size() == expectedFields[i].size());
-        for(size_t k = 0; k < expectedFields.size() ; ++k) {
+        for (size_t k = 0; k < expectedFields.size() ; ++k) {
+            const auto& actualType = val[k].type();
+            const auto& expectedType = expectedFields[i][k].type();
+            EXPECT_TRUE(actualType == expectedType)
+                << "actual type = " << actualType.name() << ", "
+                << "expected type = " << expectedType.name();
             EXPECT_TRUE(val[k] == expectedFields[i][k]);
         }
         
@@ -136,16 +140,16 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
         {"num1", tiInt},
         {"num2", tiUint},
         {"presidents", tiString},
-        {"num3", tiFloat},
+        {"num3", tiDouble},
         {"names", tiString}
     };
 
     vector<vector<any>> expectedFields2{
-        {0, 3u, "Adam smith"s, 1.23f, "Yoo Jae Suk"s},
-        {2, 6u, "george washington"s, 2.46f, "Psy"s},
-        {4, 9u, "Thomas Jefferson"s, 3.69f, "Gideon"s},
-        {6, 12u, "Abraham Lincoln"s, 4.92f, "Steven"s},
-        {8, 15u, "FDR"s, 6.15f, "Reid"s}
+        {0, 3u, "Adam smith"s, 1.23, "Yoo Jae Suk"s},
+        {2, 6u, "george washington"s, 2.46, "Psy"s},
+        {4, 9u, "Thomas Jefferson"s, 3.69, "Gideon"s},
+        {6, 12u, "Abraham Lincoln"s, 4.92, "Steven"s},
+        {8, 15u, "FDR"s, 6.15, "Reid"s}
     };
 
     scanner = makeIterator<CsvFileScanner>("metadata2.txt", "data2.csv");
@@ -153,13 +157,13 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
     
     i = 0;
     scanner->open();
-    while(scanner->hasMore()) {
+    while (scanner->hasMore()) {
         auto row = scanner->processNext();
 
         EXPECT_TRUE(row.has_value());
         const vector<any>& val = row.value();
         EXPECT_TRUE(val.size() == expectedFields2[i].size());
-        for(size_t k = 0; k < 5 ; ++k) {
+        for (size_t k = 0; k < 5 ; ++k) {
             const auto& actualType = val[k].type();
             const auto& expectedType = expectedFields2[i][k].type();
             EXPECT_TRUE(actualType == expectedType)
@@ -170,7 +174,6 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
 
         ++i;
     }
-    
 }
 
 TEST(CsvFileScannerTests, FileNameConstructorFailTests) {
@@ -186,6 +189,8 @@ TEST(CsvFileScannerTests, FileNameConstructorFailTests) {
     // Invalid metadata
     EXPECT_THROW(makeIterator<CsvFileScanner>("empty_fields_metadata.txt", "empty_fields_data.csv"), InvalidMetadata);
 
+    //To Do: Need to deal with a situation when encountered with different data lin from metadata
+    //Current, CsvFileScanner::processNext() asserts. we can't test the scnario
     // different number of fields
     /* auto scanner = makeIterator<CsvFileScanner>("different_fields.txt", "different_fields.csv");
     scanner->open();
