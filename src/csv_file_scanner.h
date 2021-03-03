@@ -6,6 +6,7 @@
 
 #include "metadata.h"
 #include "iterator.h"
+#include "expression.h"
 
 #pragma once
 
@@ -67,11 +68,13 @@ private:
         , it_(lines_.cend())
     {};
 
-    CsvFileScanner(const std::string& metadataFileName, const std::string& dataFileName);
+    CsvFileScanner(const std::string& metadataFileName,
+        const std::string& dataFileName, const ExpressionNode& expr = ExpressionNode{});
 
     Metadata metadata_;
     std::vector<std::string> lines_;
     std::vector<std::string>::const_iterator it_;
+    const ExpressionNode expr_;
 };
 
 class InvalidMetadata {};

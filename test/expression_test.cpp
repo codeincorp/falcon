@@ -44,4 +44,13 @@ TEST(ExpressionTests, EqualityExpressionTest)
 
     EXPECT_TRUE(r.type() == typeid(bool));
     EXPECT_EQ(any_cast<bool>(r), true);
+
+    metadata[0].typeIndex = tiDouble;
+    data[0] = 1.1;
+    get<0>(get<1>(expr.leafOrChildren)[1].leafOrChildren) = 1.1;
+
+    r = expr.eval(metadata, data);
+
+    EXPECT_TRUE(r.type() == typeid(bool));
+    EXPECT_EQ(any_cast<bool>(r), true);
 }

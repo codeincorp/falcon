@@ -103,10 +103,14 @@ Metadata parseLineMetadata(const std::string& line)
     return reVec;
 }
 
-CsvFileScanner::CsvFileScanner(const std::string& metadataFileName, const std::string& dataFileName)
+CsvFileScanner::CsvFileScanner(
+    const std::string& metadataFileName,
+    const std::string& dataFileName,
+    const ExpressionNode& expr)
     : metadata_()
     , lines_()
     , it_()
+    , expr_(expr)
 {
     std::fstream mfs(metadataFileName);
     if (!mfs.is_open()){
