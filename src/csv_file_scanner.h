@@ -3,6 +3,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include "metadata.h"
 #include "iterator.h"
@@ -26,21 +27,26 @@ public:
 
     void open() override
     {
-        it_ = lines_.cbegin();
+        if (!dfs_.is_open()) {
+            dfs_.open(dataFileName_);
+        }
     }
 
-    void reopen() override {};
+    void reopen() override
+    {
+        open();
+    }
 
     bool hasMore() const override
     {
-        return it_ != lines_.cend();
+        return !dfs_.eof();
     }
 
     std::optional<std::vector<std::any>> processNext() override;
 
     void close() override
     {
-        it_ = lines_.cend();
+        dfs_.close();
     }
 
     const Metadata& getMetadata() const override
@@ -50,28 +56,18 @@ public:
 
     ~CsvFileScanner() override
     {
-        it_ = lines_.cend();
+        if (dfs_.is_open()) {
+            dfs_.close();
+        }
     }
 
 private:
-    /**
-     * @brief Construct a new CSV File Scanner object.
-     * Should not be used directly. Instead, make_iterator() should be used.
-     * 
-     * @param metadata
-     * @param lines
-     */
-    CsvFileScanner(const Metadata& metadata, const std::vector<std::string>& lines)
-        : metadata_(metadata)
-        , lines_(lines)
-        , it_(lines_.cend())
-    {};
 
     CsvFileScanner(const std::string& metadataFileName, const std::string& dataFileName);
 
     Metadata metadata_;
-    std::vector<std::string> lines_;
-    std::vector<std::string>::const_iterator it_;
+    std::string dataFileName_;
+    mutable std::fstream dfs_;
 };
 
 class InvalidMetadata {};

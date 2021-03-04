@@ -105,8 +105,8 @@ Metadata parseLineMetadata(const std::string& line)
 
 CsvFileScanner::CsvFileScanner(const std::string& metadataFileName, const std::string& dataFileName)
     : metadata_()
-    , lines_()
-    , it_()
+    , dataFileName_(dataFileName)
+    , dfs_()
 {
     std::fstream mfs(metadataFileName);
     if (!mfs.is_open()){
@@ -116,19 +116,10 @@ CsvFileScanner::CsvFileScanner(const std::string& metadataFileName, const std::s
     std::getline(mfs, reading);
     metadata_ = parseLineMetadata(reading);
 
-    std::fstream dfs(dataFileName);
-    if (!dfs.is_open()){
+    dfs_.open(dataFileName_);
+    if (!dfs_.is_open()){
         throw NonExistentFile();
     }
-
-    while (!dfs.eof()) {
-        getline(dfs, reading);
-        if (!dfs.fail()) {
-            lines_.emplace_back(reading);
-        }
-    }
-
-    it_ = lines_.cend();
 }
 
 std::optional<std::vector<std::any>> CsvFileScanner::processNext()
@@ -137,8 +128,12 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
         return std::nullopt;
     }
 
-    auto fields = parseLine(*it_);
-    ++it_;
+    std::string line;
+    std::getline(dfs_, line);
+    if (dfs_.fail()) {
+        return std::nullopt;
+    }
+    auto fields = parseLine(line);
 
     assert(fields.size() == metadata_.size());
 
@@ -148,6 +143,6 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
     }
 
     return std::move(r);
-};
+}
 
 } // namespace codein

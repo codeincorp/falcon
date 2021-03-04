@@ -1,0 +1,1 @@
+a/double,b/float,c/int,d/uint,e/string

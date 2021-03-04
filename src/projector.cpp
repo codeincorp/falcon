@@ -33,6 +33,9 @@ std::optional<std::vector<std::any>> Projector::processNext()
     }
 
     auto input = child_->processNext();
+    if (!input.has_value()) {
+        return std::nullopt;
+    }
 
     const auto& inputValue = input.value();
     std::vector<std::any> output(outputMetadata_.size());
