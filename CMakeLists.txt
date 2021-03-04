@@ -29,8 +29,6 @@ set(SOURCES
     src/filter.cpp
 )
 
-add_executable(csv_query src/csv_query.cpp ${SOURCES} ${HEADERS})
-
 add_library(csvqry STATIC ${SOURCES} ${HEADERS})
 
 add_subdirectory(test)

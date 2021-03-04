@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <fstream>
 #include <string>
 #include <typeindex>
 #include <vector>
@@ -27,16 +28,27 @@ bool operator==(const Metadata& lhs, const Metadata& rhs)
 }
 
 struct ProjectorTests : public ::testing::Test {
-    Metadata metadata{
-        {"a", tiDouble},
-        {"b", tiFloat},
-        {"c", tiInt},
-        {"d", tiUint},
-        {"e", tiString}
-    };
-    vector<string> lines{
-        "10.1, -1.5f, -3, 2020, 3847 1ST ST SE"
-    };
+    const string metadataFileName = "projector.txt";
+    const string dataFileName = "projector.csv";
+    Metadata metadata;
+    vector<string> lines;
+
+    void SetUp() override
+    {
+        fstream mfs(metadataFileName);
+        string line;
+
+        if (!mfs.fail()) {
+            getline(mfs, line);
+            metadata = parseLineMetadata(line);
+        }
+
+        fstream dfs(dataFileName);
+        if (!dfs.fail()) {
+            getline(dfs, line);
+            lines.emplace_back(line);
+        }
+    }
 };
 
 TEST_F(ProjectorTests, SanityTest)
@@ -47,7 +59,7 @@ TEST_F(ProjectorTests, SanityTest)
         expected.emplace_back(convertTo(anyConverters, metadata[i].typeIndex, fields[i]));
     }
 
-    auto scanner = makeIterator<CsvFileScanner>(metadata, lines);
+    auto scanner = makeIterator<CsvFileScanner>(metadataFileName, dataFileName);
 
     vector<string> columns{
         "a", "b", "c", "d", "e"
@@ -87,7 +99,7 @@ TEST_F(ProjectorTests, SelectionTest)
     expected.emplace_back(convertTo(anyConverters, metadata[2].typeIndex, fields[2]));
     expected.emplace_back(convertTo(anyConverters, metadata[0].typeIndex, fields[0]));
 
-    auto scanner = makeIterator<CsvFileScanner>(metadata, lines);
+    auto scanner = makeIterator<CsvFileScanner>(metadataFileName, dataFileName);
 
     auto projector = makeIterator<Projector>(columns, std::move(scanner));
 
