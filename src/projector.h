@@ -28,7 +28,7 @@ public:
     void reopen() override
     {
         child_->reopen();
-    };
+    }
 
     bool hasMore() const override
     {

@@ -80,7 +80,7 @@ struct Iterator {
  * @return std::unique_ptr<Iterator> 
  */
 template <typename T, typename... Args_>
-static std::unique_ptr<Iterator> makeIterator(Args_&&... args)
+std::unique_ptr<Iterator> makeIterator(Args_&&... args)
 {
     return std::unique_ptr<Iterator>{new T(std::forward<Args_>(args)...)};
 }

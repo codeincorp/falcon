@@ -16,6 +16,8 @@ set(HEADERS
     src/to_any_converter.h
     src/any_visitor.h
     src/projector.h
+    src/expression.h
+    src/filter.h
 )
 
 set(SOURCES
@@ -23,6 +25,8 @@ set(SOURCES
     src/to_any_converter.cpp
     src/any_visitor.cpp
     src/projector.cpp
+    src/expression.cpp
+    src/filter.cpp
 )
 
 add_executable(csv_query src/csv_query.cpp ${SOURCES} ${HEADERS})

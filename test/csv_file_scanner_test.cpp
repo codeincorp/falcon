@@ -159,8 +159,7 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
     scanner->open();
     while (scanner->hasMore()) {
         auto row = scanner->processNext();
-
-        EXPECT_TRUE(row.has_value());
+        
         const vector<any>& val = row.value();
         EXPECT_TRUE(val.size() == expectedFields2[i].size());
         for (size_t k = 0; k < 5 ; ++k) {

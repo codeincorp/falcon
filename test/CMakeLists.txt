@@ -21,6 +21,8 @@ set(TEST_SOURCES
     any_converter_test.cpp
     any_visitor_test.cpp
     projector_test.cpp
+    expression_test.cpp
+    filter_test.cpp
 )
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/metadata.txt ${CMAKE_CURRENT_BINARY_DIR})
