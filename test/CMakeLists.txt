@@ -25,6 +25,7 @@ set(TEST_SOURCES
     filter_test.cpp
 )
 
+<<<<<<< HEAD
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/metadata.txt ${CMAKE_CURRENT_BINARY_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/data.csv ${CMAKE_CURRENT_BINARY_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/metadata1.txt ${CMAKE_CURRENT_BINARY_DIR})
@@ -37,6 +38,20 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/empty_file.csv ${CMAKE_CURRENT_B
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/empty_file.txt ${CMAKE_CURRENT_BINARY_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/invalid_data.csv ${CMAKE_CURRENT_BINARY_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/invalid_metadata.txt ${CMAKE_CURRENT_BINARY_DIR})
+=======
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/metadata.txt ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data.csv ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/metadata1.txt ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data1.csv ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/metadata2.txt ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data2.csv ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/empty_fields_data.csv ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/empty_fields_metadata.txt ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/empty_file.csv ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/empty_file.txt ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/invalid_data.csv ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/invalid_metadata.txt ${CMAKE_CURRENT_BINARY_DIR})
+>>>>>>> fixed CMakeList.txt
 
 add_executable(${THIS} ${TEST_SOURCES})
 add_dependencies(${THIS} googletest)
