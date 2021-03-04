@@ -3,81 +3,28 @@
 
 #include "iterator.h"
 #include "filter.h"
-#include "csv_file_scanner.h"
+#include "mock_scanner.h"
 
 using namespace std;
 using namespace codein;
 
 bool operator==(const Metadata& lhs, const Metadata& rhs);
 
-class MockScanner : public Iterator {
-public:
-    template <typename T>
-    friend std::unique_ptr<Iterator> makeIterator();
-
-    void open() override
-    {
-        it_ = lines_.cbegin();
-    }
-
-    void reopen() override
-    {
-        open();
-    }
-
-    bool hasMore() const override
-    {
-        return it_ != lines_.cend();
-    }
-
-    optional<vector<any>> processNext() override
-    {
-        if (!hasMore()) {
-            return nullopt;
-        }
-
-        auto fields = parseLine(*it_);
-        ++it_;
-
-        assert(fields.size() == metadata_.size());
-
-        std::vector<std::any> r;
-        for (size_t i = 0; i < metadata_.size(); ++i) {
-            r.emplace_back(convertTo(anyConverters, metadata_[i].typeIndex, fields[i]));
-        }
-
-        return r;
-    }
-
-    void close() override
-    {}
-
-    const Metadata& getMetadata() const override
-    {
-        return metadata_;
-    }
-
-    ~MockScanner() override
-    {}
-
-    MockScanner()
-    {}
-
-private:
-    Metadata metadata_{
+struct FilterTests : public ::testing::Test {
+    Metadata metadata{
         { "a", tiInt },
         { "b", tiFloat },
         { "c", tiString },
     };
-    vector<string> lines_{
+
+    vector<string> lines{
         "1,1.1,John Smith",
         "2,2.2,Alex Smith",
         "3,3.3,Alex Swanson",
     };
-    vector<string>::const_iterator it_;
 };
 
-TEST(FilterTests, BasicTest)
+TEST_F(FilterTests, BasicTest)
 {
     ExpressionNode filterExpr{
         .opCode = OpCode::Eq,
@@ -87,7 +34,7 @@ TEST(FilterTests, BasicTest)
         }
     };
 
-    auto mockScanner = makeIterator<MockScanner>();
+    auto mockScanner = makeIterator<MockScanner>(metadata, lines);
 
     auto filter = makeIterator<Filter>(move(mockScanner), filterExpr);
 
@@ -108,14 +55,14 @@ TEST(FilterTests, BasicTest)
     EXPECT_FALSE(data.has_value());
 }
 
-TEST(FilterTests, PassThruTest)
+TEST_F(FilterTests, PassThruTest)
 {
     ExpressionNode filterExpr{
         .opCode = OpCode::Const,
         .leafOrChildren = std::any(true)
     };
 
-    auto mockScanner = makeIterator<MockScanner>();
+    auto mockScanner = makeIterator<MockScanner>(metadata, lines);
 
     auto filter = makeIterator<Filter>(move(mockScanner), filterExpr);
 
@@ -148,7 +95,7 @@ TEST(FilterTests, PassThruTest)
     EXPECT_EQ(any_cast<string>(val3[2]), "Alex Swanson"s);
 }
 
-TEST(FilterTests, NoDataTest)
+TEST_F(FilterTests, NoDataTest)
 {
     ExpressionNode filterExpr{
         .opCode = OpCode::Eq,
@@ -158,7 +105,7 @@ TEST(FilterTests, NoDataTest)
         }
     };
 
-    auto mockScanner = makeIterator<MockScanner>();
+    auto mockScanner = makeIterator<MockScanner>(metadata, lines);
 
     auto filter = makeIterator<Filter>(move(mockScanner), filterExpr);
 
@@ -170,14 +117,14 @@ TEST(FilterTests, NoDataTest)
     EXPECT_FALSE(filter->hasMore());
 }
 
-TEST(FilterTests, InvalidFilterTest)
+TEST_F(FilterTests, InvalidFilterTest)
 {
     ExpressionNode filterExpr{
         .opCode = OpCode::Noop,
         .leafOrChildren = std::any()
     };
 
-    auto mockScanner = makeIterator<MockScanner>();
+    auto mockScanner = makeIterator<MockScanner>(metadata, lines);
 
     EXPECT_THROW(makeIterator<Filter>(move(mockScanner), filterExpr), InvalidFilter);
 }
