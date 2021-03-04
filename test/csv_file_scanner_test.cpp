@@ -34,7 +34,7 @@ TEST(CsvFileScannerTests, BasicTest)
     while (scanner->hasMore()) {
         auto row = scanner->processNext();
 
-        if(row == std::nullopt) {
+        if (row == std::nullopt) {
             break;
         }
 
@@ -74,7 +74,7 @@ TEST(CsvFileScannerTests, FileNameConstructorTest)
     while (scanner->hasMore()) {
         auto row = scanner->processNext();
         
-        if(row == std::nullopt) {
+        if (row == std::nullopt) {
             break;
         }
 
@@ -129,7 +129,7 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
     while (scanner->hasMore()) {
         auto row = scanner->processNext();
 
-        if(row == std::nullopt) {
+        if (row == std::nullopt) {
             break;
         }
 
@@ -172,7 +172,7 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
     while (scanner->hasMore()) {
         auto row = scanner->processNext();
 
-        if(row == std::nullopt) {   
+        if (row == std::nullopt) {   
             break;
         }
 
