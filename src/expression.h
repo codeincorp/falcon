@@ -14,8 +14,15 @@ enum class OpCode {
     Ref,
     Const,
     Eq,
+    Neq,
     Lt,
+    Lte,
+    Gt,
+    Gte,
     Add,
+    Sub,
+    Mult,
+    Div,
 };
 
 struct ExpressionNode {

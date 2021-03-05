@@ -76,6 +76,10 @@ extern AnyBinCompVisitorMap anyLtVisitors;
 
 bool operator<(const std::any& lhs, const std::any& rhs);
 
+extern AnyBinCompVisitorMap anyGtVisitors;
+
+bool operator>(const std::any& lhs, const std::any& rhs);
+
 using AnyBinArithOp = std::function<std::any (const std::any&, const std::any&)>;
 
 template <typename T, typename F>

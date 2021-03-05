@@ -108,6 +108,27 @@ struct GtOp {
     }
 };
 
+AnyBinCompVisitorMap anyGtVisitors{
+    toAnyBinCompVisitor<int>(GtOp<int>()),
+    toAnyBinCompVisitor<uint>(GtOp<uint>()),
+    toAnyBinCompVisitor<float>(GtOp<float>()),
+    toAnyBinCompVisitor<double>(GtOp<double>()),
+    toAnyBinCompVisitor<std::string>(GtOp<std::string>()),
+};
+
+bool operator>(const std::any& lhs, const std::any& rhs)
+{
+    auto ti = std::type_index(lhs.type());
+    if (ti != std::type_index(rhs.type())) {
+        return false;
+    }
+
+    const auto it = anyGtVisitors.find(ti);
+    assert(it != anyGtVisitors.cend());
+
+    return it->second(lhs, rhs);
+}
+
 template <typename T>
 struct AddOp {
     T operator()(const T& lhs, const T& rhs) const {
@@ -120,6 +141,7 @@ AnyBinArithOpVisitorMap anyAddVisitors{
     toAnyBinArithOpVisitor<uint>(AddOp<uint>()),
     toAnyBinArithOpVisitor<float>(AddOp<float>()),
     toAnyBinArithOpVisitor<double>(AddOp<double>()),
+    toAnyBinArithOpVisitor<std::string>(AddOp<std::string>()),
 };
 
 std::any operator+(const std::any& lhs, const std::any& rhs)
