@@ -37,6 +37,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/empty_file.csv ${CMAKE_CURRENT_B
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/empty_file.txt ${CMAKE_CURRENT_BINARY_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/invalid_data.csv ${CMAKE_CURRENT_BINARY_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/invalid_metadata.txt ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/data_basic_test.csv ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/metadata_basic_test.txt ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/projector.csv ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/projector.txt ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(${THIS} ${TEST_SOURCES})
 add_dependencies(${THIS} googletest)

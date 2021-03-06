@@ -27,12 +27,16 @@ TEST(CsvFileScannerTests, BasicTest)
         "Alex Swanson",
     };
 
-    auto scanner = makeIterator<CsvFileScanner>(metadata, lines);
+    auto scanner = makeIterator<CsvFileScanner>("metadata_basic_test.txt", "data_basic_test.csv");
     
     scanner->open();
     size_t i = 0;
     while (scanner->hasMore()) {
         auto row = scanner->processNext();
+
+        if (row == std::nullopt) {
+            break;
+        }
 
         EXPECT_TRUE(row.has_value());
         EXPECT_TRUE(row.value().size() == 3);
@@ -69,6 +73,10 @@ TEST(CsvFileScannerTests, FileNameConstructorTest)
     size_t i = 0;
     while (scanner->hasMore()) {
         auto row = scanner->processNext();
+        
+        if (row == std::nullopt) {
+            break;
+        }
 
         EXPECT_TRUE(row.has_value());
         EXPECT_TRUE(row.value().size() == expectedMetadata.size());
@@ -120,7 +128,11 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
     scanner->open();
     while (scanner->hasMore()) {
         auto row = scanner->processNext();
-        
+
+        if (row == std::nullopt) {
+            break;
+        }
+
         const vector<any>& val = row.value();
         EXPECT_TRUE(row.has_value());
         EXPECT_TRUE(val.size() == expectedFields[i].size());
@@ -159,7 +171,12 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
     scanner->open();
     while (scanner->hasMore()) {
         auto row = scanner->processNext();
-        
+
+        if (row == std::nullopt) {   
+            break;
+        }
+
+        EXPECT_TRUE(row.has_value());
         const vector<any>& val = row.value();
         EXPECT_TRUE(val.size() == expectedFields2[i].size());
         for (size_t k = 0; k < 5 ; ++k) {
