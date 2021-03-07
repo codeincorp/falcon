@@ -8,6 +8,8 @@
 
 namespace codein {
 
+extern const std::any nullany;
+
 /**
  * @brief Make a type_index&converter to any pair to register the converter for a specific type.
  * 
@@ -65,7 +67,7 @@ inline std::any convertTo(
         // Absorb any exceptions and return null any value instead.
     }
 
-    return std::any();
+    return nullany;
 }
 
 /**
