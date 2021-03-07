@@ -67,6 +67,11 @@ bool operator==(const std::any& lhs, const std::any& rhs)
     return it->second(lhs, rhs);
 }
 
+bool operator!=(const std::any& lhs, const std::any& rhs)
+{
+    return !(lhs == rhs);
+}
+
 AnyBinCompVisitorMap anyLtVisitors{
     toAnyBinCompVisitor<bool>(std::less<bool>()),
     toAnyBinCompVisitor<int>(std::less<int>()),

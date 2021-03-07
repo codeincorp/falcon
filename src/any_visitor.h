@@ -67,6 +67,7 @@ toAnyBinCompVisitor(F const &f)
 }
 
 bool operator==(const std::any& lhs, const std::any& rhs);
+bool operator!=(const std::any& lhs, const std::any& rhs);
 bool operator<(const std::any& lhs, const std::any& rhs);
 bool operator<=(const std::any& lhs, const std::any& rhs);
 bool operator>(const std::any& lhs, const std::any& rhs);

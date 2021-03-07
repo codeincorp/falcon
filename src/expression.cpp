@@ -50,7 +50,10 @@ const std::vector<Evaluator> evaluators{
     },
 
     // OpCode::Neq
-    evalNotSupported,
+    [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
+        auto [lhs, rhs] = n.firstAndSecond();
+        return std::any{lhs.eval(metadata, data) != rhs.eval(metadata, data)};
+    },
 
     // OpCode::Lt
     [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
