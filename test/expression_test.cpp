@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <any>
 #include <typeinfo>
+#include <variant>
 #include <vector>
 
 #include "expression.h"
@@ -8,6 +9,96 @@
 
 using namespace std;
 using namespace codein;
+
+TEST(ExpressionTests, BasicTests)
+{
+    // leaf-only expression: const(1)
+    Expression expr{
+        .opCode = OpCode::Const,
+        .leafOrChildren = std::any(1)
+    };
+
+    // data: a == 123
+    Metadata metadata{{"a", tiInt}};
+    vector<any> data{123};
+
+    auto r = expr.eval(metadata, data);
+    EXPECT_EQ(any_cast<int>(r), 1);
+
+    // expression: ref(a)
+    expr.opCode = OpCode::Ref;
+    expr.leaf() = std::any("a"s);
+
+    r = expr.eval(metadata, data);
+    EXPECT_EQ(any_cast<int>(r), 123);
+
+    // A simple tree expression: !false -> Not --- Const(false)
+    expr.opCode = OpCode::Not;
+    expr.leafOrChildren = vector<Expression>{
+        {.opCode = OpCode::Const, .leafOrChildren = std::any(false)},
+    };
+
+    r = expr.eval(metadata, data);
+    EXPECT_TRUE(any_cast<bool>(r));
+
+    // More complex tree expression: a > 1 && a <= 5
+    // And -+- Gt  -+- Ref(a)
+    //      |       |
+    //      |       +- Const(1)
+    //      | 
+    //      +- Lte -+- Ref(a)
+    //              |
+    //              +- Const(5)
+    expr.opCode = OpCode::And;
+    expr.leafOrChildren = vector<Expression>{
+        // a > 1
+        {
+            .opCode = OpCode::Gt,
+            .leafOrChildren = vector<Expression>{
+                {
+                    .opCode = OpCode::Ref,
+                    .leafOrChildren = std::any("a"s)
+                },
+                {
+                    .opCode = OpCode::Const,
+                    .leafOrChildren = std::any(1)
+                }
+            }
+        },
+        // a <= 5
+        {
+            .opCode = OpCode::Lte,
+            .leafOrChildren = vector<Expression>{
+                {
+                    .opCode = OpCode::Ref,
+                    .leafOrChildren = std::any("a"s)
+                },
+                {
+                    .opCode = OpCode::Const,
+                    .leafOrChildren = std::any(5)
+                }
+            }
+        },
+    };
+
+    // data: a = 3
+    data[0] = 3;
+
+    r = expr.eval(metadata, data);
+    EXPECT_TRUE(any_cast<bool>(r));
+
+    // data: a = -10
+    data[0] = -10;
+
+    r = expr.eval(metadata, data);
+    EXPECT_FALSE(any_cast<bool>(r));
+
+    // data: a = 8
+    data[0] = 8;
+
+    r = expr.eval(metadata, data);
+    EXPECT_FALSE(any_cast<bool>(r));
+}
 
 TEST(ExpressionTests, EqualExpressionTest)
 {
@@ -372,11 +463,11 @@ TEST(ExpressionTests, LessEqualExpressionTest)
     EXPECT_FALSE(any_cast<bool>(r));
 
     // expression: a <= 2.2
-    expr.second().leaf() = 2.2f;
+    expr.second().leaf() = 2.2;
 
     // data: a == 1.1
     metadata[0].typeIndex = tiDouble;
-    data[0] = 1.1f;
+    data[0] = 1.1;
 
     r = expr.eval(metadata, data);
 
@@ -384,7 +475,7 @@ TEST(ExpressionTests, LessEqualExpressionTest)
     EXPECT_TRUE(any_cast<bool>(r));
 
     // data: a == 2.2
-    data[0] = 2.2f;
+    data[0] = 2.2;
 
     r = expr.eval(metadata, data);
 
@@ -392,7 +483,7 @@ TEST(ExpressionTests, LessEqualExpressionTest)
     EXPECT_TRUE(any_cast<bool>(r));
 
     // data: a == 3.3
-    data[0] = 3.3f;
+    data[0] = 3.3;
 
     r = expr.eval(metadata, data);
 

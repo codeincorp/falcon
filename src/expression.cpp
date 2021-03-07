@@ -28,7 +28,7 @@ const std::vector<Evaluator> evaluators{
 
     // OpCode::Ref
     [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
-        auto name = std::any_cast<std::string>(n.leaf());
+        const auto& name = std::any_cast<std::string>(n.leaf());
         for (size_t i = 0; i < metadata.size(); ++i) {
             if (metadata[i].fieldName == name) {
                 return data[i];
@@ -45,43 +45,43 @@ const std::vector<Evaluator> evaluators{
 
     // OpCode::Eq
     [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
-        auto [lhs, rhs] = n.firstAndSecond();
+        const auto& [lhs, rhs] = n.firstAndSecond();
         return std::any{lhs.eval(metadata, data) == rhs.eval(metadata, data)};
     },
 
     // OpCode::Neq
     [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
-        auto [lhs, rhs] = n.firstAndSecond();
+        const auto& [lhs, rhs] = n.firstAndSecond();
         return std::any{lhs.eval(metadata, data) != rhs.eval(metadata, data)};
     },
 
     // OpCode::Lt
     [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
-        auto [lhs, rhs] = n.firstAndSecond();
+        const auto& [lhs, rhs] = n.firstAndSecond();
         return std::any{lhs.eval(metadata, data) < rhs.eval(metadata, data)};
     },
 
     // OpCode::Lte
     [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
-        auto [lhs, rhs] = n.firstAndSecond();
+        const auto& [lhs, rhs] = n.firstAndSecond();
         return std::any{lhs.eval(metadata, data) <= rhs.eval(metadata, data)};
     },
 
     // OpCode::Gt
     [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
-        auto [lhs, rhs] = n.firstAndSecond();
+        const auto& [lhs, rhs] = n.firstAndSecond();
         return std::any{lhs.eval(metadata, data) > rhs.eval(metadata, data)};
     },
 
     // OpCode::Gte
     [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
-        auto [lhs, rhs] = n.firstAndSecond();
+        const auto& [lhs, rhs] = n.firstAndSecond();
         return std::any{lhs.eval(metadata, data) >= rhs.eval(metadata, data)};
     },
 
     // OpCode::Add
     [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
-        auto [lhs, rhs] = n.firstAndSecond();
+        const auto& [lhs, rhs] = n.firstAndSecond();
         return std::any{lhs.eval(metadata, data) + rhs.eval(metadata, data)};
     },
 
@@ -93,6 +93,36 @@ const std::vector<Evaluator> evaluators{
 
     // OpCode::Div
     evalNotSupported,
+
+    // OpCode::Not
+    [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
+        auto lhs = n.first();
+        return std::any{notAny(lhs.eval(metadata, data))};
+    },
+
+    // OpCode::And
+    [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
+        auto [lhs, rhs] = n.firstAndSecond();
+        // Implements short-circuit.
+        if (auto r = lhs.eval(metadata, data); std::any_cast<bool>(r)) {
+            return rhs.eval(metadata, data);
+        }
+        else {
+            return std::any(false);
+        }
+    },
+
+    // OpCode::Or
+    [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
+        auto [lhs, rhs] = n.firstAndSecond();
+        // Implements short-circuit.
+        if (auto r = lhs.eval(metadata, data); std::any_cast<bool>(r)) {
+            return std::any(true);
+        }
+        else {
+            return rhs.eval(metadata, data);
+        }
+    },
 };
 
 std::any Expression::eval(const Metadata& metadata, const std::vector<std::any>& data) const {

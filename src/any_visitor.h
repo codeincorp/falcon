@@ -91,4 +91,8 @@ toAnyBinArithOpVisitor(F const &f)
 
 std::any operator+(const std::any& lhs, const std::any& rhs);
 
+constexpr auto notAny = [](const std::any& lhs) {
+    return !std::any_cast<bool>(lhs);
+};
+
 }
