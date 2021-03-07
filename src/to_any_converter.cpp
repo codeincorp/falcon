@@ -4,6 +4,8 @@
 
 namespace codein {
 
+const std::any nullany;
+
 AnyConverterMap anyConverters {
     toAnyConverter<int>([](const std::string& s) {
         return stoi(s);

@@ -1,5 +1,6 @@
 #include <cassert>
 #include <fstream>
+#include <iostream>
 #include <optional>
 #include <string>
 #include <vector>
@@ -8,6 +9,8 @@
 #include "iterator.h"
 #include "csv_file_scanner.h"
 #include "to_any_converter.h"
+#include "to_any_converter.cpp"
+#include "any_visitor.cpp"
 
 namespace codein {
 
@@ -124,6 +127,8 @@ CsvFileScanner::CsvFileScanner(
     if (!dfs_.is_open()){
         throw NonExistentFile();
     }
+    readLine_ = 0;
+    errorLines_ = 0;
 }
 
 std::optional<std::vector<std::any>> CsvFileScanner::processNext()
@@ -135,15 +140,31 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
     std::string line;
     std::getline(dfs_, line);
     if (dfs_.fail()) {
+        if (errorLines_ != 0) {
+            std::cout << "There were some discrepencies between metadata and actual data lines: \n"
+            << "read lines: " + readLine_ << "\nerror lines " + errorLines_;
+        }
         return std::nullopt;
     }
     auto fields = parseLine(line);
-
-    assert(fields.size() == metadata_.size());
-
+    readLine_++;
+    
     std::vector<std::any> r;
     for (size_t i = 0; i < metadata_.size(); ++i) {
-        r.emplace_back(convertTo(anyConverters, metadata_[i].typeIndex, fields[i]));
+        const auto field = convertTo(anyConverters, metadata_[i].typeIndex, fields[i]);
+        if (field == nullany || fields.size() != metadata_.size()) {
+            errorLines_++;
+
+            if (readLine_ > threshold_ && errorLines_ > readLine_/2) {
+                std::cout << "Too many discrepencies between specified metadata and actual data: "
+                << "Invalid metadata: aborting process\n"
+                << "read lines: " + readLine_ << "\nerror lines: " + errorLines_;
+                dfs_.close();
+            }
+
+            return std::nullopt;
+        }
+        r.emplace_back(field);
     }
 
     return std::move(r);
