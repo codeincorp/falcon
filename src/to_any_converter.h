@@ -80,7 +80,7 @@ extern AnyConverterMap anyConverters;
 extern const std::type_index tiVoid;
 /// Type index for int type.
 extern const std::type_index tiInt;
-/// Type index for uint type.
+/// Type index for unsigned type.
 extern const std::type_index tiUint;
 /// Type index for float type.
 extern const std::type_index tiFloat;

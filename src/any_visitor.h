@@ -66,19 +66,11 @@ toAnyBinCompVisitor(F const &f)
     };
 }
 
-using AnyBinCompVisitorMap = std::unordered_map<std::type_index, AnyBinComp>;
-
-extern AnyBinCompVisitorMap anyEqVisitors;
-
 bool operator==(const std::any& lhs, const std::any& rhs);
-
-extern AnyBinCompVisitorMap anyLtVisitors;
-
 bool operator<(const std::any& lhs, const std::any& rhs);
-
-extern AnyBinCompVisitorMap anyGtVisitors;
-
+bool operator<=(const std::any& lhs, const std::any& rhs);
 bool operator>(const std::any& lhs, const std::any& rhs);
+bool operator>=(const std::any& lhs, const std::any& rhs);
 
 using AnyBinArithOp = std::function<std::any (const std::any&, const std::any&)>;
 
@@ -95,8 +87,6 @@ toAnyBinArithOpVisitor(F const &f)
         }
     };
 }
-
-using AnyBinArithOpVisitorMap = std::unordered_map<std::type_index, AnyBinArithOp>;
 
 std::any operator+(const std::any& lhs, const std::any& rhs);
 

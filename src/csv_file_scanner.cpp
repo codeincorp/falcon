@@ -106,7 +106,7 @@ Metadata parseLineMetadata(const std::string& line)
 CsvFileScanner::CsvFileScanner(
     const std::string& metadataFileName,
     const std::string& dataFileName,
-    const ExpressionNode& expr)
+    const Expression& expr)
     : metadata_()
     , dataFileName_(dataFileName)
     , dfs_()

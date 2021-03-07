@@ -26,9 +26,9 @@ struct FilterTests : public ::testing::Test {
 
 TEST_F(FilterTests, BasicTest)
 {
-    ExpressionNode filterExpr{
+    Expression filterExpr{
         .opCode = OpCode::Eq,
-        .leafOrChildren = vector<ExpressionNode>{
+        .leafOrChildren = vector<Expression>{
             {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
             {.opCode = OpCode::Const, .leafOrChildren = std::any(2)},
         }
@@ -57,7 +57,7 @@ TEST_F(FilterTests, BasicTest)
 
 TEST_F(FilterTests, PassThruTest)
 {
-    ExpressionNode filterExpr{
+    Expression filterExpr{
         .opCode = OpCode::Const,
         .leafOrChildren = std::any(true)
     };
@@ -97,9 +97,9 @@ TEST_F(FilterTests, PassThruTest)
 
 TEST_F(FilterTests, NoDataTest)
 {
-    ExpressionNode filterExpr{
+    Expression filterExpr{
         .opCode = OpCode::Eq,
-        .leafOrChildren = vector<ExpressionNode>{
+        .leafOrChildren = vector<Expression>{
             {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
             {.opCode = OpCode::Const, .leafOrChildren = std::any(0)},
         }
@@ -119,7 +119,7 @@ TEST_F(FilterTests, NoDataTest)
 
 TEST_F(FilterTests, InvalidFilterTest)
 {
-    ExpressionNode filterExpr{
+    Expression filterExpr{
         .opCode = OpCode::Noop,
         .leafOrChildren = std::any()
     };

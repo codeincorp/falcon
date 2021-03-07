@@ -48,7 +48,7 @@ public:
     {}
 
 private:
-    Filter(std::unique_ptr<Iterator>&& child, const ExpressionNode& expr)
+    Filter(std::unique_ptr<Iterator>&& child, const Expression& expr)
         : child_()
         , expr_(expr)
         , metadata_()
@@ -62,7 +62,7 @@ private:
     }
 
     std::unique_ptr<Iterator> child_;
-    const ExpressionNode expr_;
+    const Expression expr_;
     Metadata metadata_;
 };
 

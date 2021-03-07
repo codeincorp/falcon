@@ -64,12 +64,12 @@ public:
 
 private:
     CsvFileScanner(const std::string& metadataFileName,
-        const std::string& dataFileName, const ExpressionNode& expr = ExpressionNode{});
+        const std::string& dataFileName, const Expression& expr = Expression{});
 
     Metadata metadata_;
     std::string dataFileName_;
     mutable std::fstream dfs_;
-    const ExpressionNode expr_;
+    const Expression expr_;
 };
 
 class InvalidMetadata {};
