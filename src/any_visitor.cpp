@@ -45,6 +45,19 @@ std::ostream& operator<<(std::ostream& os, const std::vector<std::any>& va)
 
 using AnyBinCompVisitorMap = std::unordered_map<std::type_index, AnyBinComp>;
 
+inline bool apply(const AnyBinCompVisitorMap& opMap, const std::any& lhs, const std::any& rhs)
+{
+    auto ti = std::type_index(lhs.type());
+    if (ti != std::type_index(rhs.type())) {
+        return false;
+    }
+
+    const auto it = opMap.find(ti);
+    assert(it != opMap.cend());
+
+    return it->second(lhs, rhs);
+}
+
 AnyBinCompVisitorMap anyEqVisitors{
     toAnyBinCompVisitor<bool>(std::equal_to<bool>()),
     toAnyBinCompVisitor<int>(std::equal_to<int>()),
@@ -56,15 +69,7 @@ AnyBinCompVisitorMap anyEqVisitors{
 
 bool operator==(const std::any& lhs, const std::any& rhs)
 {
-    auto ti = std::type_index(lhs.type());
-    if (ti != std::type_index(rhs.type())) {
-        return false;
-    }
-
-    const auto it = anyEqVisitors.find(ti);
-    assert(it != anyEqVisitors.cend());
-
-    return it->second(lhs, rhs);
+    return apply(anyEqVisitors, lhs, rhs);
 }
 
 bool operator!=(const std::any& lhs, const std::any& rhs)
@@ -83,15 +88,7 @@ AnyBinCompVisitorMap anyLtVisitors{
 
 bool operator<(const std::any& lhs, const std::any& rhs)
 {
-    auto ti = std::type_index(lhs.type());
-    if (ti != std::type_index(rhs.type())) {
-        return false;
-    }
-
-    const auto it = anyLtVisitors.find(ti);
-    assert(it != anyLtVisitors.cend());
-
-    return it->second(lhs, rhs);
+    return apply(anyLtVisitors, lhs, rhs);
 }
 
 AnyBinCompVisitorMap anyLteVisitors{
@@ -105,15 +102,7 @@ AnyBinCompVisitorMap anyLteVisitors{
 
 bool operator<=(const std::any& lhs, const std::any& rhs)
 {
-    auto ti = std::type_index(lhs.type());
-    if (ti != std::type_index(rhs.type())) {
-        return false;
-    }
-
-    const auto it = anyLteVisitors.find(ti);
-    assert(it != anyLteVisitors.cend());
-
-    return it->second(lhs, rhs);
+    return apply(anyLteVisitors, lhs, rhs);
 }
 
 AnyBinCompVisitorMap anyGtVisitors{
@@ -126,15 +115,7 @@ AnyBinCompVisitorMap anyGtVisitors{
 
 bool operator>(const std::any& lhs, const std::any& rhs)
 {
-    auto ti = std::type_index(lhs.type());
-    if (ti != std::type_index(rhs.type())) {
-        return false;
-    }
-
-    const auto it = anyGtVisitors.find(ti);
-    assert(it != anyGtVisitors.cend());
-
-    return it->second(lhs, rhs);
+    return apply(anyGtVisitors, lhs, rhs);
 }
 
 AnyBinCompVisitorMap anyGteVisitors{
@@ -147,45 +128,71 @@ AnyBinCompVisitorMap anyGteVisitors{
 
 bool operator>=(const std::any& lhs, const std::any& rhs)
 {
-    auto ti = std::type_index(lhs.type());
-    if (ti != std::type_index(rhs.type())) {
-        return false;
-    }
-
-    const auto it = anyGteVisitors.find(ti);
-    assert(it != anyGteVisitors.cend());
-
-    return it->second(lhs, rhs);
+    return apply(anyGteVisitors, lhs, rhs);
 }
 
 using AnyBinArithOpVisitorMap = std::unordered_map<std::type_index, AnyBinArithOp>;
 
-template <typename T>
-struct AddOp {
-    T operator()(const T& lhs, const T& rhs) const {
-        return lhs + rhs;
+inline std::any apply(const AnyBinArithOpVisitorMap& opMap, const std::any& lhs, const std::any& rhs)
+{
+    auto ti = std::type_index(lhs.type());
+    if (ti != std::type_index(rhs.type())) {
+        return std::any();
     }
-};
+
+    const auto it = opMap.find(ti);
+    assert(it != opMap.cend());
+
+    return it->second(lhs, rhs);
+}
 
 AnyBinArithOpVisitorMap anyAddVisitors{
-    toAnyBinArithOpVisitor<int>(AddOp<int>()),
-    toAnyBinArithOpVisitor<unsigned>(AddOp<unsigned>()),
-    toAnyBinArithOpVisitor<float>(AddOp<float>()),
-    toAnyBinArithOpVisitor<double>(AddOp<double>()),
-    toAnyBinArithOpVisitor<std::string>(AddOp<std::string>()),
+    toAnyBinArithOpVisitor<int>(std::plus<int>()),
+    toAnyBinArithOpVisitor<unsigned>(std::plus<unsigned>()),
+    toAnyBinArithOpVisitor<float>(std::plus<float>()),
+    toAnyBinArithOpVisitor<double>(std::plus<double>()),
+    toAnyBinArithOpVisitor<std::string>(std::plus<std::string>()),
 };
 
 std::any operator+(const std::any& lhs, const std::any& rhs)
 {
-    auto ti = std::type_index(lhs.type());
-    if (ti != std::type_index(rhs.type())) {
-        return false;
-    }
+    return apply(anyAddVisitors, lhs, rhs);
+}
 
-    const auto it = anyAddVisitors.find(ti);
-    assert(it != anyAddVisitors.cend());
+AnyBinArithOpVisitorMap anySubVisitors{
+    toAnyBinArithOpVisitor<int>(std::minus<int>()),
+    toAnyBinArithOpVisitor<unsigned>(std::minus<unsigned>()),
+    toAnyBinArithOpVisitor<float>(std::minus<float>()),
+    toAnyBinArithOpVisitor<double>(std::minus<double>()),
+};
 
-    return it->second(lhs, rhs);
+std::any operator-(const std::any& lhs, const std::any& rhs)
+{
+    return apply(anySubVisitors, lhs, rhs);
+}
+
+AnyBinArithOpVisitorMap anyMultVisitors{
+    toAnyBinArithOpVisitor<int>(std::multiplies<int>()),
+    toAnyBinArithOpVisitor<unsigned>(std::multiplies<unsigned>()),
+    toAnyBinArithOpVisitor<float>(std::multiplies<float>()),
+    toAnyBinArithOpVisitor<double>(std::multiplies<double>()),
+};
+
+std::any operator*(const std::any& lhs, const std::any& rhs)
+{
+    return apply(anyMultVisitors, lhs, rhs);
+}
+
+AnyBinArithOpVisitorMap anyDivVisitors{
+    toAnyBinArithOpVisitor<int>(std::divides<int>()),
+    toAnyBinArithOpVisitor<unsigned>(std::divides<unsigned>()),
+    toAnyBinArithOpVisitor<float>(std::divides<float>()),
+    toAnyBinArithOpVisitor<double>(std::divides<double>()),
+};
+
+std::any operator/(const std::any& lhs, const std::any& rhs)
+{
+    return apply(anyDivVisitors, lhs, rhs);
 }
 
 }

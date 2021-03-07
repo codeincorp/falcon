@@ -86,13 +86,22 @@ const std::vector<Evaluator> evaluators{
     },
 
     // OpCode::Sub
-    evalNotSupported,
+    [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
+        const auto& [lhs, rhs] = n.firstAndSecond();
+        return std::any{lhs.eval(metadata, data) - rhs.eval(metadata, data)};
+    },
 
     // OpCode::Mult
-    evalNotSupported,
+    [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
+        const auto& [lhs, rhs] = n.firstAndSecond();
+        return std::any{lhs.eval(metadata, data) * rhs.eval(metadata, data)};
+    },
 
     // OpCode::Div
-    evalNotSupported,
+    [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
+        const auto& [lhs, rhs] = n.firstAndSecond();
+        return std::any{lhs.eval(metadata, data) / rhs.eval(metadata, data)};
+    },
 
     // OpCode::Not
     [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {

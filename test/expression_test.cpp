@@ -730,3 +730,90 @@ TEST(ExpressionTests, AddExpressionTest)
     EXPECT_TRUE(r.type() == tiInt);
     EXPECT_EQ(any_cast<int>(r), 7);
 }
+
+TEST(ExpressionTests, SubExpressionTest)
+{
+    // expression: a - b
+    Expression expr{
+        .opCode = OpCode::Sub,
+        .leafOrChildren = vector<Expression>{
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("b"s)},
+        }
+    };
+
+    // data: a == 1, b == 2
+    Metadata metadata{{"a", tiInt}, {"b", tiInt}};
+    vector<any> data{1, 2};
+
+    auto r = expr.eval(metadata, data);
+
+    EXPECT_TRUE(r.type() == tiInt);
+    EXPECT_EQ(any_cast<int>(r), -1);
+
+    // expression: 5 - b
+    expr.first() = { .opCode = OpCode::Const, .leafOrChildren = std::any(5) };
+
+    r = expr.eval(metadata, data);
+
+    EXPECT_TRUE(r.type() == tiInt);
+    EXPECT_EQ(any_cast<int>(r), 3);
+}
+
+TEST(ExpressionTests, MultExpressionTest)
+{
+    // expression: a * b
+    Expression expr{
+        .opCode = OpCode::Mult,
+        .leafOrChildren = vector<Expression>{
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("b"s)},
+        }
+    };
+
+    // data: a == 2, b == 3
+    Metadata metadata{{"a", tiInt}, {"b", tiInt}};
+    vector<any> data{2, 3};
+
+    auto r = expr.eval(metadata, data);
+
+    EXPECT_TRUE(r.type() == tiInt);
+    EXPECT_EQ(any_cast<int>(r), 6);
+
+    // expression: 5 * b
+    expr.first() = { .opCode = OpCode::Const, .leafOrChildren = std::any(5) };
+
+    r = expr.eval(metadata, data);
+
+    EXPECT_TRUE(r.type() == tiInt);
+    EXPECT_EQ(any_cast<int>(r), 15);
+}
+
+TEST(ExpressionTests, DivExpressionTest)
+{
+    // expression: a / b
+    Expression expr{
+        .opCode = OpCode::Div,
+        .leafOrChildren = vector<Expression>{
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("b"s)},
+        }
+    };
+
+    // data: a == 6, b == 3
+    Metadata metadata{{"a", tiInt}, {"b", tiInt}};
+    vector<any> data{6, 3};
+
+    auto r = expr.eval(metadata, data);
+
+    EXPECT_TRUE(r.type() == tiInt);
+    EXPECT_EQ(any_cast<int>(r), 2);
+
+    // expression: 1 / b
+    expr.first() = { .opCode = OpCode::Const, .leafOrChildren = std::any(1) };
+
+    r = expr.eval(metadata, data);
+
+    EXPECT_TRUE(r.type() == tiInt);
+    EXPECT_EQ(any_cast<int>(r), 0);
+}
