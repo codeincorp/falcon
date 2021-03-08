@@ -47,6 +47,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/different_fields1.csv ${CMAKE_CU
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/different_fields1.txt ${CMAKE_CURRENT_BINARY_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/different_fields2.csv ${CMAKE_CURRENT_BINARY_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/different_fields2.txt ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/different_fields3.csv ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/different_fields3.txt ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(${THIS} ${TEST_SOURCES})
 add_dependencies(${THIS} googletest)

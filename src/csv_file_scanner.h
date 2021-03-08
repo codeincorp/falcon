@@ -69,14 +69,10 @@ private:
     Metadata metadata_;
     std::string dataFileName_;
     mutable std::fstream dfs_;
-<<<<<<< HEAD
     const Expression expr_;
-=======
-    const ExpressionNode expr_;
     unsigned int readLine_;
     const unsigned int threshold_ = 30;
     unsigned int errorLines_;
->>>>>>> #36 CsvFileScanner need to handle invalid data or metadata more gracefully
 };
 
 class InvalidMetadata {};
