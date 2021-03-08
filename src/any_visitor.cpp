@@ -52,18 +52,8 @@ inline bool apply(const AnyBinCompVisitorMap& opMap, const std::any& lhs, const 
     if (ti != std::type_index(rhs.type())) {
         return false;
     }
-<<<<<<< HEAD
-
     const auto it = opMap.find(ti);
     assert(it != opMap.cend());
-=======
-    
-    const auto it = anyEqVisitors.find(ti);
-    if (it == anyEqVisitors.cend()) {
-        return true;
-    }
-    //assert(it != anyEqVisitors.cend());
->>>>>>> #36 CsvFileScanner need to handle invalid data or metadata more gracefully
 
     return it->second(lhs, rhs);
 }
@@ -79,6 +69,9 @@ AnyBinCompVisitorMap anyEqVisitors{
 
 bool operator==(const std::any& lhs, const std::any& rhs)
 {
+    if(lhs.type() == typeid(void) && rhs.type() == typeid(void)) {
+        return true;
+    }
     return apply(anyEqVisitors, lhs, rhs);
 }
 
