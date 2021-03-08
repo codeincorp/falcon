@@ -64,6 +64,7 @@ public:
 
     std::size_t operator[](const std::string& name) const {
         ensureColToIdxSetup();
+        // TODO: #73 What if 'name' does not exist?
         return colToIdx_[name];
     }
 
@@ -97,5 +98,20 @@ private:
     std::vector<FieldMetaInfo> fields_;
     mutable std::unordered_map<std::string, std::size_t> colToIdx_;
 };
+
+inline bool operator==(const Metadata& lhs, const Metadata& rhs)
+{
+    if (lhs.size() != rhs.size()) {
+        return false;
+    }
+
+    for (size_t i = 0; i < lhs.size(); ++i) {
+        if (lhs[i].fieldName != rhs[i].fieldName || lhs[i].typeIndex != rhs[i].typeIndex) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 }

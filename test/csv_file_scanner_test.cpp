@@ -1,12 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "metadata.h"
 #include "any_visitor.h"
 #include "csv_file_scanner.h"
 
 using namespace std;
 using namespace codein;
-
-bool operator==(const Metadata& lhs, const Metadata& rhs);
 
 TEST(CsvFileScannerTests, BasicTest)
 {
