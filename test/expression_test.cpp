@@ -817,3 +817,32 @@ TEST(ExpressionTests, DivExpressionTest)
     EXPECT_TRUE(r.type() == tiInt);
     EXPECT_EQ(any_cast<int>(r), 0);
 }
+
+TEST(ExpressionTests, ModExpressionTest)
+{
+    // expression: a % b
+    Expression expr{
+        .opCode = OpCode::Mod,
+        .leafOrChildren = vector<Expression>{
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("b"s)},
+        }
+    };
+
+    // data: a == 5, b == 3
+    Metadata metadata{{"a", tiInt}, {"b", tiInt}};
+    vector<any> data{5, 3};
+
+    auto r = expr.eval(metadata, data);
+
+    EXPECT_TRUE(r.type() == tiInt);
+    EXPECT_EQ(any_cast<int>(r), 2);
+
+    // expression: 1 % b
+    expr.first() = { .opCode = OpCode::Const, .leafOrChildren = std::any(1) };
+
+    r = expr.eval(metadata, data);
+
+    EXPECT_TRUE(r.type() == tiInt);
+    EXPECT_EQ(any_cast<int>(r), 1);
+}
