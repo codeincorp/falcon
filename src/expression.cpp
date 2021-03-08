@@ -29,13 +29,7 @@ const std::vector<Evaluator> evaluators{
     // OpCode::Ref
     [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
         const auto& name = std::any_cast<std::string>(n.leaf());
-        for (size_t i = 0; i < metadata.size(); ++i) {
-            if (metadata[i].fieldName == name) {
-                return data[i];
-            }
-        }
-
-        return std::any();
+        return data[metadata[name]];
     },
 
     // OpCode::Const

@@ -14,14 +14,10 @@ Projector::Projector(const std::vector<std::string>& columns, std::unique_ptr<It
     , outputMetadata_(columns.size())
     , colBinds_(columns.size())
 {
-    const Metadata& inputMetadata = child_->getMetadata();
-    std::unordered_map<std::string, size_t> colToInputMap;
-    for (size_t i = 0; i < inputMetadata.size(); ++i) {
-        colToInputMap.insert(std::make_pair(inputMetadata[i].fieldName, i));
-    }
+    const auto& inputMetadata = child_->getMetadata();
 
     for (size_t i = 0; i < columns.size(); ++i) {
-        colBinds_[i] = colToInputMap[columns[i]];
+        colBinds_[i] = inputMetadata[columns[i]];
         outputMetadata_[i] = inputMetadata[colBinds_[i]];
     }
 }
