@@ -33,8 +33,6 @@ add_library(csvqry STATIC ${SOURCES} ${HEADERS})
 
 add_subdirectory(test)
 
-add_executable(opt_n_any src/opt_n_any.cpp)
-
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
