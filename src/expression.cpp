@@ -103,6 +103,12 @@ const std::vector<Evaluator> evaluators{
         return std::any{lhs.eval(metadata, data) / rhs.eval(metadata, data)};
     },
 
+    // OpCode::Mod
+    [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
+        const auto& [lhs, rhs] = n.firstAndSecond();
+        return std::any{lhs.eval(metadata, data) % rhs.eval(metadata, data)};
+    },
+
     // OpCode::Not
     [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
         auto lhs = n.first();

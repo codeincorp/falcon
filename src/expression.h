@@ -24,6 +24,7 @@ enum class OpCode {
     Sub,
     Mult,
     Div,
+    Mod,
     Not,
     And,
     Or,

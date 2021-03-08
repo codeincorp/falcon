@@ -195,4 +195,14 @@ std::any operator/(const std::any& lhs, const std::any& rhs)
     return apply(anyDivVisitors, lhs, rhs);
 }
 
+AnyBinArithOpVisitorMap anyModVisitors{
+    toAnyBinArithOpVisitor<int>(std::modulus<int>()),
+    toAnyBinArithOpVisitor<unsigned>(std::modulus<unsigned>()),
+};
+
+std::any operator%(const std::any& lhs, const std::any& rhs)
+{
+    return apply(anyModVisitors, lhs, rhs);
+}
+
 }
