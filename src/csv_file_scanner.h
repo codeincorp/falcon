@@ -81,5 +81,6 @@ private:
 
 class InvalidMetadata {};
 class NonExistentFile {};
+class WrongMetadata {};
 
 } // namespace codein

@@ -197,7 +197,6 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
 }
 
 TEST(CsvFileScannerTests, FileNameConstructorFailTests) {
-    
     // non-existent file
     EXPECT_THROW(makeIterator<CsvFileScanner>("hello.txt", "Danta.csv"), NonExistentFile);
     EXPECT_THROW(makeIterator<CsvFileScanner>("metadata.txt", "Danta.csv"), NonExistentFile);
@@ -212,49 +211,68 @@ TEST(CsvFileScannerTests, FileNameConstructorFailTests) {
     //To Do: Need to deal with a situation when encountered with different data line from metadata
     //Current, CsvFileScanner::processNext() asserts. we can't test the scnario
     // different number of fields
-
-    Metadata expectedMetadata {
-        {"pen", tiString},
-        {"b", tiInt},
-        {"plus", tiUint}
-    };
-
-    vector<vector<any>> expectedFields {
-        {"pen", -23, 45u, 4},
-        {"pencil", -1, 12u},
-        {"work", 4, 3u , "plus and minus"},
-        {"phone", 23, 15u},
-        {"tank", -2, 2u},
-        {"scissors", -6, 5u}
+    // current convertTo throws nullany when non-numeric string attempts to be converted into
+    // numeric type such as double, int, etc  
+    vector<int> expectedWrongLine {
+        1,3,7,9,10,11,12,15,16,19,20,21,23,24,26,28,31,32,33,34,36,37,38
     };
 
     auto scanner = makeIterator<CsvFileScanner>("different_fields.txt", "different_fields.csv");
     scanner->open();
     size_t i = 0;
+    size_t k = 0;
     while (scanner->hasMore()) {
+        i++;
+        if (i == 31) {
+            EXPECT_THROW(scanner->processNext(), WrongMetadata);
+            break;
+        }
         auto row = scanner->processNext();
-
-        if (row == std::nullopt) { 
-            ++i;  
-            continue;
+        if (i == expectedWrongLine[k]) {
+            EXPECT_TRUE(row == std::nullopt);
+            k++;
         }
-
-        EXPECT_TRUE(row.has_value());
-        const vector<any>& val = row.value();
-        EXPECT_TRUE(val.size() == expectedFields[i].size());
-        for (size_t k = 0; k < expectedFields.size() ; ++k) {
-            const auto& actualType = val[k].type();
-            const auto& expectedType = expectedFields[i][k].type();
-            EXPECT_TRUE(actualType == expectedType)
-                << "actual type = " << actualType.name() << ", "
-                << "expected type = " << expectedType.name();
-            EXPECT_TRUE(val[k] == expectedFields[i][k]);
-        }
-
-        ++i;
+        
     }
-    // program should crash
-    //EXPECT_THROW(scanner->processNext(), exception);
+    EXPECT_TRUE(k < expectedWrongLine.size());
+
+    scanner = makeIterator<CsvFileScanner>("different_fields1.txt", "different_fields1.csv");
+    scanner->open();
+    i = 0;
+    vector<int> expectedWrongLines {
+        11,12,13,14,15,17,18,19,20,21,22,23,24,26,30,32,33
+    };
+    k = 0;
+    while (scanner->hasMore()) {
+        i++;
+        if (i == 33) {
+            EXPECT_THROW(scanner->processNext(), WrongMetadata);
+            break;
+        }
+        auto row = scanner->processNext();
+        if (i == expectedWrongLines[k]) {
+            EXPECT_TRUE(row == std::nullopt);
+            k++;
+        }
+    }
+    EXPECT_TRUE(k+1 == expectedWrongLines.size());
+
+    scanner = makeIterator<CsvFileScanner>("different_fields2.txt", "different_fields2.csv");
+    scanner->open();
+    i = 0;
+    k = 0;
+    vector<int> expectedWrongLines1 {
+        1,3,4,6,10,13,15,16
+    };
+    while (scanner->hasMore()) {
+        i++;
+        auto row = scanner->processNext();
+        if (i == expectedWrongLines1[k]) {
+            EXPECT_TRUE(row == std::nullopt);
+            k++;
+        }
+    }
+    EXPECT_TRUE(k == expectedWrongLines1.size());
 
     // Invalid file format
     EXPECT_THROW(makeIterator<CsvFileScanner>("invalid_metadata.txt", "invalid_data.csv"), InvalidMetadata);
