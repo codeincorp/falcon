@@ -141,8 +141,8 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
     std::getline(dfs_, line);
     if (dfs_.fail()) {
         if (errorLines_ != 0) {
-            std::cout << "There were some discrepencies between metadata and actual data lines: \n"
-            << "read lines: " + readLine_ << "\nerror lines " + errorLines_;
+            std::cout << "There were some discrepencies between metadata and actual data lines: \n";
+            std::cout << "read lines: " << readLine_ << "\nerror lines " << errorLines_ << std::endl;
         }
         return std::nullopt;
     }
@@ -156,17 +156,18 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
             errorLines_++;
 
             if (readLine_ > threshold_ && errorLines_ > readLine_/2) {
-                std::cout << "Too many discrepencies between specified metadata and actual data: "
-                << "Invalid metadata: aborting process\n"
-                << "read lines: " + readLine_ << "\nerror lines: " + errorLines_;
-                dfs_.close();
+                std::cout << "Too many discrepencies between specified metadata and actual data lines: "
+                << "\nInvalid metadata: aborting process\n"
+                << "read lines: " << readLine_ << "\nerror lines: "<< errorLines_ << std::endl;
+                close();
+                errorLines_ = 0;
+                throw WrongMetadata();
             }
 
             return std::nullopt;
         }
         r.emplace_back(field);
     }
-
     return std::move(r);
 }
 
