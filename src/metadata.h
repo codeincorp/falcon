@@ -10,6 +10,8 @@
 
 namespace codein {
 
+class UnknownName {};
+
 /**
  * @brief Metadata information for a field such as field name and field type
  */
@@ -62,10 +64,16 @@ public:
         return fields_[i];
     }
 
+    // Writing back is not allowed and always value is returned.
     std::size_t operator[](const std::string& name) const {
         ensureColToIdxSetup();
-        // TODO: #73 What if 'name' does not exist?
-        return colToIdx_[name];
+
+        if (auto i = colToIdx_.find(name); i == colToIdx_.cend()) {
+            throw UnknownName();
+        }
+        else {
+            return i->second;
+        }
     }
 
     std::size_t size() const {

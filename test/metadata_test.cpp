@@ -104,3 +104,16 @@ TEST(MetadataTests, IndexingTest)
     EXPECT_EQ(meta0["b"], 1);
     EXPECT_EQ(meta0["d"], 3);
 }
+
+TEST(MetadataTests, InvalidIndexingTest)
+{
+    Metadata meta0{
+        {"a", tiInt},
+        {"b", tiUint},
+        {"c", tiFloat},
+        {"d", tiString},
+        {"e", tiDouble},
+    };
+
+    EXPECT_THROW(meta0["k"], UnknownName);
+}
