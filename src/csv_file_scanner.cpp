@@ -117,7 +117,7 @@ CsvFileScanner::CsvFileScanner(
     , errorLines_(0)
 {
     std::fstream mfs(metadataFileName);
-    if (!mfs.is_open()){
+    if (!mfs.is_open()) {
         throw NonExistentFile();
     }
     std::string reading;
@@ -125,7 +125,7 @@ CsvFileScanner::CsvFileScanner(
     metadata_ = parseLineMetadata(reading);
 
     dfs_.open(dataFileName_);
-    if (!dfs_.is_open()){
+    if (!dfs_.is_open()) {
         throw NonExistentFile();
     }
 }
