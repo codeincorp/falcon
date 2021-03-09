@@ -4,6 +4,7 @@
 #include <typeindex>
 #include <vector>
 
+#include "metadata.h"
 #include "to_any_converter.h"
 #include "any_visitor.h"
 #include "csv_file_scanner.h"
@@ -11,21 +12,6 @@
 
 using namespace std;
 using namespace codein;
-
-bool operator==(const Metadata& lhs, const Metadata& rhs)
-{
-    if (lhs.size() != rhs.size()) {
-        return false;
-    }
-
-    for (size_t i = 0; i < lhs.size(); ++i) {
-        if (lhs[i].fieldName != rhs[i].fieldName || lhs[i].typeIndex != rhs[i].typeIndex) {
-            return false;
-        }
-    }
-
-    return true;
-}
 
 struct ProjectorTests : public ::testing::Test {
     const string metadataFileName = "projector.txt";
