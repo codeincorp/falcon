@@ -133,13 +133,13 @@ CsvFileScanner::CsvFileScanner(
 void CsvFileScanner::checkError() 
 {
     /* current convertTo throws nullany only  when non-numeric string attempts to be converted into
-    * numeric type such as double, int, etc. thus, it doesn't work when a numeric type, such as double
-    * attempts to be converted into another numeric type such as int, causing only lossy conversion
-    * We ignore data if it does not match to metadata description
-    * If we've already read more than kThreshold lines and number of error lines is greater than half 
-    * of number of read lines, then notify it and give up further processing, 
-    * assuming that probably the wrong metadata is specified.  
-    */
+     * numeric type such as double, int, etc. thus, it doesn't work when a numeric type, such as double
+     * attempts to be converted into another numeric type such as int, causing only lossy conversion
+     * We ignore data if it does not match to metadata description
+     * If we've already read more than kThreshold lines and number of error lines is greater than half 
+     * of number of read lines, then notify it and give up further processing, 
+     * assuming that probably the wrong metadata is specified.  
+     */
     if (readLines_ > kThreshold && errorLines_ > readLines_ / 2) {
         std::cerr << "Too many discrepencies between specified metadata and actual data lines: "
                   << "\nInvalid metadata: aborting process\n"
@@ -166,6 +166,7 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
                 std::cerr << "There were some discrepencies between metadata and actual data lines: \n"
                           << "read lines: " << readLines_ << "\nerror lines " << errorLines_ << std::endl;
             }
+
             return std::nullopt;
         }
         ++readLines_;
@@ -177,6 +178,7 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
 
             continue;
         }
+
         for (size_t i = 0; i < metadata_.size(); ++i) {
             const auto field = convertTo(anyConverters, metadata_[i].typeIndex, fields[i]);
             if (field == codein::nullany) {

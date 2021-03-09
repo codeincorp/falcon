@@ -70,12 +70,13 @@ private:
 
     void checkError();
 
+    const unsigned int kThreshold = 30;
+
     Metadata metadata_;
     std::string dataFileName_;
     mutable std::fstream dfs_;
     const Expression expr_;
     unsigned int readLines_;
-    const unsigned int kThreshold = 30;
     unsigned int errorLines_;
 };
 
