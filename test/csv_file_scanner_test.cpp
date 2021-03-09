@@ -26,10 +26,6 @@ TEST(CsvFileScannerTests, BasicTest)
         "Alex Smith",
         "Alex Swanson",
     };
-
-    // std::any empty;
-
-    // EXPECT_TRUE(empty == nullany);
     
     auto scanner = makeIterator<CsvFileScanner>("metadata_basic_test.txt", "data_basic_test.csv");
     
@@ -215,7 +211,7 @@ TEST(CsvFileScannerTests, FileNameConstructorFailTests) {
         {"plus", tiUint}
     };
 
-    //includes only correct lines
+    // includes only correct lines
     vector<vector<any>> expectedFields {
         {"pencil"s, -1, 12u},
         {"phone"s, 23, 15u},
@@ -233,9 +229,16 @@ TEST(CsvFileScannerTests, FileNameConstructorFailTests) {
         {"line30"s, 234, 3u}
     };
 
+    /* total number of line is 41
+     * however, as readLines_ goes over 30, 
+     * there will be too many error lines and
+     * processNext() will throw WrongMetadata at line 31
+     * before reading the entire file
+     */
     auto scanner = makeIterator<CsvFileScanner>("different_fields.txt", "different_fields.csv");
     EXPECT_TRUE(scanner->getMetadata() == expectedMetadata);
     scanner->open();
+    const size_t kValidLinesInDataFile = 14;
     size_t i = 0;
 
     while (scanner->hasMore()) {
@@ -261,63 +264,7 @@ TEST(CsvFileScannerTests, FileNameConstructorFailTests) {
 
         ++i;
     }
-    EXPECT_TRUE(i == 14);
-
-    Metadata expectedMetadata1 {
-        {"quantity", tiUint},
-        {"review", tiFloat},
-        {"score", tiInt}
-    };
-
-    // includes only correct lines
-    vector<vector<any>> expectedFields1 {
-        {200u, 3.6f, 12},
-        {100u, 5.6f, 13},
-        {300u, 3.5f, 14},
-        {203u, 7.2f, 15},
-        {4050u, 5.34f, 16},
-        {320u, 5.11f, 17},
-        {30u, 3.09f, 18},
-        {405u, 4.09f, 21},
-        {360u, 5.34f, 13},
-        {930u, 13.12f, 14},
-        {699u, 2.3f, 65},
-        {458u, 3.5f, 45},
-        {638u, 2.90f, 35},
-        {583u, 5.321f, 42},
-        {578u, 1.234f, 25},
-        {897u, 2.32f, 54}
-    };
-
-    scanner = makeIterator<CsvFileScanner>("different_fields1.txt", "different_fields1.csv");
-    EXPECT_TRUE(scanner->getMetadata() == expectedMetadata1);
-    scanner->open();
-    i = 0;
-
-    while (scanner->hasMore()) {
-        // 16 = number of valid lines in the file
-        if (i == 16) {
-            EXPECT_THROW(scanner->processNext(), WrongMetadata);
-            break;
-        }
-        auto row = scanner->processNext();
-
-        // processNext will skip wrong lines and return next valid line
-        EXPECT_TRUE(row.has_value());
-        const vector<any>& val = row.value();
-        EXPECT_TRUE(val.size() == expectedFields1[i].size());
-        for (size_t k = 0; k < expectedMetadata1.size(); ++k) {
-            const auto& actualType = val[k].type();
-            const auto& expectedType = expectedFields1[i][k].type();
-            EXPECT_TRUE(actualType == expectedType)
-                << "actual type = " << actualType.name() << ", "
-                << "expected type = " << expectedType.name();
-            EXPECT_TRUE(val[k] == expectedFields1[i][k]);
-        }
-
-        ++i;
-    }
-    EXPECT_TRUE(i == 16);
+    EXPECT_EQ(i, kValidLinesInDataFile);
 
     Metadata expectedMetadata2 {
         {"a", tiFloat},
@@ -336,16 +283,23 @@ TEST(CsvFileScannerTests, FileNameConstructorFailTests) {
         {3.33f, "medicine"s, 90}
     };
 
+    /* different_fields2.csv has 9 total invalid lines
+     * which is more than half of the entire lines. However,
+     * since the number of total lines is below 30, processNext
+     * should only print out error message without aborting the process and
+     * throwing WrongMetadata
+     */
     scanner = makeIterator<CsvFileScanner>("different_fields2.txt", "different_fields2.csv");
     EXPECT_TRUE(scanner->getMetadata() == expectedMetadata2);
     scanner->open();
+    const size_t kValidLinesInDataFile1 = 8;
     i = 0;
 
     while (scanner->hasMore()) {
         auto row = scanner->processNext();
 
         if (row == std::nullopt) {
-            continue;
+            break;
         }
 
         EXPECT_TRUE(row.has_value());
@@ -362,8 +316,14 @@ TEST(CsvFileScannerTests, FileNameConstructorFailTests) {
 
         ++i;
     }
-    EXPECT_TRUE(i == 8);
+    EXPECT_EQ(i, kValidLinesInDataFile1);
     
+    /* In the case 1, further reading process should be aborted
+     * because error lines are more than half of the total read lines
+     * in this case, the loop should read the entire file and print out
+     * how many lines were invalid as the number of error lines never go beyond
+     * half of the total read lines
+     */
     Metadata expectedMetadata3 {
         {"one", tiString},
         {"two", tiInt},
@@ -378,13 +338,14 @@ TEST(CsvFileScannerTests, FileNameConstructorFailTests) {
     scanner = makeIterator<CsvFileScanner>("different_fields3.txt", "different_fields3.csv");
     EXPECT_TRUE(scanner->getMetadata() == expectedMetadata3);
     scanner->open();
+    const size_t kValidLinesInDataFile2 = 26;
     i = 0;
 
     while (scanner->hasMore()) {
         auto row = scanner->processNext();
 
         if (row == std::nullopt) {
-            continue;
+            break;
         }
 
         EXPECT_TRUE(row.has_value());
@@ -401,7 +362,7 @@ TEST(CsvFileScannerTests, FileNameConstructorFailTests) {
 
         ++i;
     }
-    EXPECT_TRUE(i == 26);
+    EXPECT_EQ(i,kValidLinesInDataFile2);
 
     // Invalid file format
     EXPECT_THROW(makeIterator<CsvFileScanner>("invalid_metadata.txt", "invalid_data.csv"), InvalidMetadata);

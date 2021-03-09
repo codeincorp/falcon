@@ -36,6 +36,8 @@ public:
     void reopen() override
     {
         open();
+        readLines_ = 0;
+        errorLines_= 0;
     }
 
     bool hasMore() const override
@@ -66,12 +68,14 @@ private:
     CsvFileScanner(const std::string& metadataFileName,
         const std::string& dataFileName, const Expression& expr = Expression{});
 
+    void checkError();
+
     Metadata metadata_;
     std::string dataFileName_;
     mutable std::fstream dfs_;
     const Expression expr_;
-    unsigned int readLine_;
-    const unsigned int threshold_ = 30;
+    unsigned int readLines_;
+    const unsigned int kThreshold = 30;
     unsigned int errorLines_;
 };
 

@@ -72,6 +72,7 @@ bool operator==(const std::any& lhs, const std::any& rhs)
     if(lhs.type() == typeid(void) && rhs.type() == typeid(void)) {
         return true;
     }
+    
     return apply(anyEqVisitors, lhs, rhs);
 }
 

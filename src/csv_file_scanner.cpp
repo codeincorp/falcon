@@ -9,8 +9,7 @@
 #include "iterator.h"
 #include "csv_file_scanner.h"
 #include "to_any_converter.h"
-#include "to_any_converter.cpp"
-#include "any_visitor.cpp"
+#include "any_visitor.h"
 
 namespace codein {
 
@@ -114,6 +113,8 @@ CsvFileScanner::CsvFileScanner(
     , dataFileName_(dataFileName)
     , dfs_()
     , expr_(expr)
+    , readLines_(0)
+    , errorLines_(0)
 {
     std::fstream mfs(metadataFileName);
     if (!mfs.is_open()){
@@ -127,8 +128,25 @@ CsvFileScanner::CsvFileScanner(
     if (!dfs_.is_open()){
         throw NonExistentFile();
     }
-    readLine_ = 0;
-    errorLines_ = 0;
+}
+
+void CsvFileScanner::checkError() 
+{
+    /* current convertTo throws nullany only  when non-numeric string attempts to be converted into
+    * numeric type such as double, int, etc. thus, it doesn't work when a numeric type, such as double
+    * attempts to be converted into another numeric type such as int, causing only lossy conversion
+    * We ignore data if it does not match to metadata description
+    * If we've already read more than kThreshold lines and number of error lines is greater than half 
+    * of number of read lines, then notify it and give up further processing, 
+    * assuming that probably the wrong metadata is specified.  
+    */
+    if (readLines_ > kThreshold && errorLines_ > readLines_ / 2) {
+        std::cerr << "Too many discrepencies between specified metadata and actual data lines: "
+                  << "\nInvalid metadata: aborting process\n"
+                  << "read lines: " << readLines_ << "\nerror lines: "<< errorLines_ << std::endl;
+        errorLines_ = 0;
+        throw WrongMetadata();
+    }
 }
 
 std::optional<std::vector<std::any>> CsvFileScanner::processNext()
@@ -145,36 +163,35 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
         
         if (dfs_.fail()) {
             if (errorLines_ != 0) {
-                std::cout << "There were some discrepencies between metadata and actual data lines: \n";
-                std::cout << "read lines: " << readLine_ << "\nerror lines " << errorLines_ << std::endl;
+                std::cerr << "There were some discrepencies between metadata and actual data lines: \n"
+                          << "read lines: " << readLines_ << "\nerror lines " << errorLines_ << std::endl;
             }
             return std::nullopt;
         }
-        readLine_++;
+        ++readLines_;
 
+        if (fields.size() != metadata_.size()) {
+            ++errorLines_;
+
+            checkError();
+
+            continue;
+        }
         for (size_t i = 0; i < metadata_.size(); ++i) {
             const auto field = convertTo(anyConverters, metadata_[i].typeIndex, fields[i]);
-            if (field == nullany || fields.size() != metadata_.size()) {
-                errorLines_++;
+            if (field == codein::nullany) {
+                ++errorLines_;
 
-                /* current convertTo throws nullany only  when non-numeric string attempts to be converted into
-                 * numeric type such as double, int, etc. thus, it doesn't work when a numeric type, such as double
-                 * attempts to be converted into another numeric type such as int, causing only lossy conversion */
-                if (readLine_ > threshold_ && errorLines_ > readLine_/2) {
-                    std::cout << "Too many discrepencies between specified metadata and actual data lines: "
-                    << "\nInvalid metadata: aborting process\n"
-                    << "read lines: " << readLine_ << "\nerror lines: "<< errorLines_ << std::endl;
-                    close();
-                    errorLines_ = 0;
-                    throw WrongMetadata();
-                }
+                checkError();
 
                 r.clear();
                 break;
             }
+
             r.emplace_back(field);
         }
     }
+
     return std::move(r);
 }
 
