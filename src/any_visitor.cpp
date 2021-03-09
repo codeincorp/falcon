@@ -5,6 +5,7 @@
 #include <typeindex>
 
 #include "any_visitor.h"
+#include "to_any_converter.h"
 
 namespace codein {
 
@@ -51,7 +52,6 @@ inline bool apply(const AnyBinCompVisitorMap& opMap, const std::any& lhs, const 
     if (ti != std::type_index(rhs.type())) {
         return false;
     }
-
     const auto it = opMap.find(ti);
     assert(it != opMap.cend());
 
@@ -69,6 +69,10 @@ AnyBinCompVisitorMap anyEqVisitors{
 
 bool operator==(const std::any& lhs, const std::any& rhs)
 {
+    if(lhs.type() == typeid(void) && rhs.type() == typeid(void)) {
+        return true;
+    }
+    
     return apply(anyEqVisitors, lhs, rhs);
 }
 
