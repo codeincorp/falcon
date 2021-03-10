@@ -14,8 +14,8 @@ class InvalidFilter {};
 
 class Filter : public Iterator {
 public:
-    template <typename T, typename... Args_>
-    friend std::unique_ptr<Iterator> makeIterator(Args_&&...);
+    template <typename T, typename... ArgTs>
+    friend std::unique_ptr<Iterator> makeIterator(ArgTs&&...);
 
     void open() override
     {
