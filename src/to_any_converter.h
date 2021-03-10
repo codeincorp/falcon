@@ -80,6 +80,8 @@ extern AnyConverterMap anyConverters;
 
 /// Type index for void type.
 extern const std::type_index tiVoid;
+/// Type index for bool type.
+extern const std::type_index tiBool;
 /// Type index for int type.
 extern const std::type_index tiInt;
 /// Type index for unsigned type.

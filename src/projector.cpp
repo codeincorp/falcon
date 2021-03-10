@@ -9,18 +9,12 @@
 
 namespace codein {
 
-Projector::Projector(const std::vector<std::string>& columns, std::unique_ptr<Iterator>&& child)
+Projector::Projector(std::unique_ptr<Iterator>&& child, const std::vector<Expression>& projections, Metadata metadata)
     : child_(std::move(child))
-    , outputMetadata_(columns.size())
-    , colBinds_(columns.size())
-{
-    const auto& inputMetadata = child_->getMetadata();
-
-    for (size_t i = 0; i < columns.size(); ++i) {
-        colBinds_[i] = inputMetadata[columns[i]];
-        outputMetadata_[i] = inputMetadata[colBinds_[i]];
-    }
-}
+    , inputMetadata_(child_->getMetadata())
+    , projections_(projections)
+    , outputMetadata_(std::move(metadata))
+{}
 
 std::optional<std::vector<std::any>> Projector::processNext()
 {
@@ -33,13 +27,14 @@ std::optional<std::vector<std::any>> Projector::processNext()
         return std::nullopt;
     }
 
-    const auto& inputValue = input.value();
-    std::vector<std::any> output(outputMetadata_.size());
-    for (size_t i = 0; i < output.size(); ++i) {
-        output[i] = std::move(inputValue[colBinds_[i]]);;
+    auto& inputValue = input.value();
+    std::vector<std::any> output;
+    output.reserve(outputMetadata_.size());
+    for (size_t i = 0; i < outputMetadata_.size(); ++i) {
+        output.emplace_back(std::move(projections_[i].eval(inputMetadata_, inputValue)));
     }
 
-    return {output};
+    return { output };
 }
 
 } // namespace codein;
