@@ -75,14 +75,14 @@ struct Iterator {
  * created only through this factory function.
  * 
  * @tparam T Type of iterator to be created
- * @tparam Args_ Types of arguments for T constructor
+ * @tparam ArgTs Types of arguments for T constructor
  * @param args Arguments for T constructor
  * @return std::unique_ptr<Iterator> 
  */
-template <typename T, typename... Args_>
-std::unique_ptr<Iterator> makeIterator(Args_&&... args)
+template <typename T, typename... ArgTs>
+std::unique_ptr<Iterator> makeIterator(ArgTs&&... args)
 {
-    return std::unique_ptr<Iterator>{new T(std::forward<Args_>(args)...)};
+    return std::unique_ptr<Iterator>{new T(std::forward<ArgTs>(args)...)};
 }
 
 }
