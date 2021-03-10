@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "iterator.h"
+#include "expression.h"
 
 #pragma once
 
@@ -58,14 +59,16 @@ private:
     /**
      * @brief Construct a new Projector object
      * 
-     * @param columns 
      * @param child 
+     * @param projections 
+     * @param metadata 
      */
-    Projector(const std::vector<std::string>& columns, std::unique_ptr<Iterator>&& child);
+    Projector(std::unique_ptr<Iterator>&& child, const std::vector<Expression>& projections, Metadata metadata);
 
     std::unique_ptr<Iterator> child_;
+    const Metadata& inputMetadata_;
+    std::vector<Expression> projections_;
     Metadata outputMetadata_;
-    std::vector<size_t> colBinds_;
 };
 
 } // namespace codein

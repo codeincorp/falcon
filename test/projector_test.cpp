@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "metadata.h"
+#include "expression.h"
 #include "to_any_converter.h"
 #include "any_visitor.h"
 #include "csv_file_scanner.h"
@@ -47,11 +48,15 @@ TEST_F(ProjectorTests, SanityTest)
 
     auto scanner = makeIterator<CsvFileScanner>(metadataFileName, dataFileName);
 
-    vector<string> columns{
-        "a", "b", "c", "d", "e"
+    vector<Expression> projections{
+        {.opCode = OpCode::Ref, .leafOrChildren = any("a"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = any("b"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = any("c"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = any("d"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = any("e"s)},
     };
 
-    auto projector = makeIterator<Projector>(columns, std::move(scanner));
+    auto projector = makeIterator<Projector>(std::move(scanner), projections, metadata);
 
     projector->open();
     ASSERT_TRUE(projector->hasMore());
@@ -70,9 +75,12 @@ TEST_F(ProjectorTests, SanityTest)
 
 TEST_F(ProjectorTests, SelectionTest)
 {
-    vector<string> columns{
-        "e", "c", "a"
+    vector<Expression> projections{
+        {.opCode = OpCode::Ref, .leafOrChildren = any("e"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = any("c"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = any("a"s)},
     };
+
     Metadata expectedMetadata{
         {"e", tiString},
         {"c", tiInt},
@@ -87,7 +95,67 @@ TEST_F(ProjectorTests, SelectionTest)
 
     auto scanner = makeIterator<CsvFileScanner>(metadataFileName, dataFileName);
 
-    auto projector = makeIterator<Projector>(columns, std::move(scanner));
+    auto projector = makeIterator<Projector>(std::move(scanner), projections, expectedMetadata);
+
+    projector->open();
+    ASSERT_TRUE(projector->hasMore());
+    ASSERT_TRUE(projector->getMetadata() == expectedMetadata);
+
+    optional<vector<any>> actual = projector->processNext();
+    ASSERT_TRUE(actual.has_value());
+
+    const auto& val = actual.value();
+    ASSERT_EQ(val.size(), expectedMetadata.size());
+    for (size_t i = 0; i < val.size(); ++i) {
+        EXPECT_TRUE(type_index(val[i].type()) == expectedMetadata[i].typeIndex);
+        EXPECT_TRUE(val[i] == expected[i]);
+    }
+}
+
+TEST_F(ProjectorTests, ProjExprTest)
+{
+    vector<Expression> projections{
+        // e + " LA"
+        {
+            .opCode = OpCode::Add,
+            .leafOrChildren = vector<Expression>{
+                {.opCode = OpCode::Ref, .leafOrChildren = any("e"s)},
+                {.opCode = OpCode::Const, .leafOrChildren = any(" LA"s)},
+            }
+        },
+        // c == -3
+        {
+            .opCode = OpCode::Eq,
+            .leafOrChildren = vector<Expression>{
+                {.opCode = OpCode::Ref, .leafOrChildren = any("c"s)},
+                {.opCode = OpCode::Const, .leafOrChildren = any(-3)},
+            }
+        },
+        // a * 3.0
+        {
+            .opCode = OpCode::Mult,
+            .leafOrChildren = vector<Expression>{
+                {.opCode = OpCode::Ref, .leafOrChildren = any("a"s)},
+                {.opCode = OpCode::Const, .leafOrChildren = any(3.0)},
+            }
+        }
+    };
+
+    Metadata expectedMetadata{
+        {"e", tiString},
+        {"c", tiBool},
+        {"a", tiDouble},
+    };
+ 
+    auto fields = parseLine(lines[0]);
+    std::vector<std::any> expected;
+    expected.emplace_back(convertTo(anyConverters, metadata[4].typeIndex, fields[4]) + any(" LA"s));
+    expected.emplace_back(convertTo(anyConverters, metadata[2].typeIndex, fields[2]) == any(-3));
+    expected.emplace_back(convertTo(anyConverters, metadata[0].typeIndex, fields[0]) * any(3.0));
+
+    auto scanner = makeIterator<CsvFileScanner>(metadataFileName, dataFileName);
+
+    auto projector = makeIterator<Projector>(std::move(scanner), projections, expectedMetadata);
 
     projector->open();
     ASSERT_TRUE(projector->hasMore());
