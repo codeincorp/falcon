@@ -65,7 +65,7 @@ public:
 
 private:
     CsvFileScanner(const std::string& metadataFileName,
-        const std::string& dataFileName, const Expression& expr = alwaysTrue);
+        const std::string& dataFileName, const Expression& filterExpr = kAlwaysTrue);
 
     void checkError();
 
@@ -74,7 +74,7 @@ private:
     Metadata metadata_;
     std::string dataFileName_;
     mutable std::fstream dfs_;
-    const Expression expr_;
+    const Expression filterExpr_;
     unsigned int readLines_;
     unsigned int errorLines_;
 };

@@ -7,9 +7,9 @@
 using namespace std;
 using namespace codein;
 
-// a == 1
 TEST(CsvFileScannerTests, filterTest) 
 {
+    // a == 1u
     Expression filterExpr {
         .opCode = OpCode::Eq,
         .leafOrChildren = vector<Expression>{
@@ -33,8 +33,9 @@ TEST(CsvFileScannerTests, filterTest)
  
 }
 
-// b >= 10
-TEST(CsvFileScannerTests, filterTest1) {
+TEST(CsvFileScannerTests, filterTest1) 
+{
+    // b >= 10
     Expression filterExpr {
         .opCode = OpCode::Gte,
         .leafOrChildren = vector<Expression>{
@@ -43,7 +44,7 @@ TEST(CsvFileScannerTests, filterTest1) {
         }
     };
 
-    const size_t kPassedLines = 7;
+    const size_t kExpectedPassedLines = 7;
     auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
     scanner->open();
     size_t i = 0;
@@ -59,14 +60,16 @@ TEST(CsvFileScannerTests, filterTest1) {
         i++;
     }
 
-    EXPECT_EQ(i,kPassedLines);
+    EXPECT_EQ(i,kExpectedPassedLines);
 }
 
-// a == 1 && b >= 10
-TEST(CsvFileScannerTests, filterTest2) {
+TEST(CsvFileScannerTests, filterTest2)
+{
+    // a == 1u && b >= 10
     Expression filterExpr {
         .opCode = OpCode::And,
-        // a == 1
+
+        // a == 1u
         .leafOrChildren = vector<Expression>{
             {
                 .opCode = OpCode::Eq, 
@@ -86,7 +89,7 @@ TEST(CsvFileScannerTests, filterTest2) {
         }
     };
 
-    const size_t kPassedLines = 2;
+    const size_t kExpectedPassedLines = 2;
     auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
     scanner->open();
     size_t i = 0;
@@ -99,15 +102,16 @@ TEST(CsvFileScannerTests, filterTest2) {
         }
 
         EXPECT_EQ(1u, any_cast<unsigned int>(row.value()[0]));
-        EXPECT_TRUE(10 <= any_cast<int>(row.value()[1]));
+        EXPECT_GE(any_cast<int>(row.value()[1]), 10);
         i++;
     }
 
-    EXPECT_EQ(i, kPassedLines);
+    EXPECT_EQ(i, kExpectedPassedLines);
 }
 
-// d == "OTTOGI"
-TEST(CsvFileScannerTests, filterTest3) {
+TEST(CsvFileScannerTests, filterTest3) 
+{
+    // d == "OTTOGI"
     Expression filterExpr {
         .opCode = OpCode::Eq,
         .leafOrChildren = vector<Expression>{
@@ -116,7 +120,7 @@ TEST(CsvFileScannerTests, filterTest3) {
         }
     };
 
-    const size_t kPassedLines = 3;
+    const size_t kExpectedPassedLines = 3;
     auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
     scanner->open();
     size_t i = 0;
@@ -132,11 +136,12 @@ TEST(CsvFileScannerTests, filterTest3) {
         i++;
     }
 
-    EXPECT_EQ(i , kPassedLines);
+    EXPECT_EQ(i , kExpectedPassedLines);
 }
 
-// e(string) == d(string) + "1"
-TEST(CsvFileScannerTests, filterTest4) {
+TEST(CsvFileScannerTests, filterTest4) 
+{
+    // e(string) == d(string) + "1"
     Expression filterExpr {
         .opCode = OpCode::Eq,
         .leafOrChildren = vector<Expression>{
@@ -152,7 +157,7 @@ TEST(CsvFileScannerTests, filterTest4) {
         }
     };
 
-    const size_t kPassedLines = 3;
+    const size_t kExpectedPassedLines = 3;
     auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
     scanner->open();
     size_t i = 0;
@@ -168,11 +173,12 @@ TEST(CsvFileScannerTests, filterTest4) {
         i++;
     }
 
-    EXPECT_EQ(i, kPassedLines);
+    EXPECT_EQ(i, kExpectedPassedLines);
 }
 
-// calling non-existent field name for expression, should throw UnknownName exception
-TEST(CsvFileScannerTests, nonExistentFieldNameTest) {
+TEST(CsvFileScannerTests, nonExistentFieldNameTest) 
+{
+    // calling non-existent field name for expression, should throw UnknownName exception
     Expression filterExpr {
         .opCode = OpCode::Eq,
         .leafOrChildren = vector<Expression>{
@@ -184,6 +190,36 @@ TEST(CsvFileScannerTests, nonExistentFieldNameTest) {
     auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
     scanner->open();
     EXPECT_THROW(scanner->processNext(), UnknownName);
+}
+
+TEST(CsvFileScannerTests, noPassFilterTest) 
+{
+    // c < 0
+    Expression filterExpr {
+        .opCode = OpCode::Lt,
+        .leafOrChildren = vector<Expression>{
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("c"s)},
+            {.opCode = OpCode::Const, .leafOrChildren = std::any(0)}, 
+        }
+    };
+
+    const size_t kExpectedPassedLines = 0;
+    auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
+    scanner->open();
+    size_t i = 0;
+
+    while (scanner->hasMore()) {
+        auto row = scanner->processNext();
+        EXPECT_TRUE(row == std::nullopt);
+
+        if (row == std::nullopt) {
+            break;
+        }
+
+        i++;
+    }
+
+    EXPECT_EQ(i, kExpectedPassedLines);
 }
 
 TEST(CsvFileScannerTests, BasicTest)

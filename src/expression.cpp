@@ -10,9 +10,9 @@
 
 namespace codein {
 
-const Expression alwaysTrue{.opCode = OpCode::Const, .leafOrChildren = std::any(true)};
+const Expression kAlwaysTrue{.opCode = OpCode::Const, .leafOrChildren = std::any(true)};
 
-const Expression alwaysFalse{.opCode = OpCode::Const, .leafOrChildren = std::any(false)};
+const Expression kAlwaysFalse{.opCode = OpCode::Const, .leafOrChildren = std::any(false)};
 
 using Evaluator = std::function<std::any (const Expression&, const Metadata&, const std::vector<std::any>&)>;
 
