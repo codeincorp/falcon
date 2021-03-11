@@ -192,9 +192,15 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
 
             r.emplace_back(field);
         }
+
+        auto filter = expr_.eval(metadata_, r);
+        if (notAny(filter)) {
+            r.clear();
+        }
+
     }
 
-    return std::move(r);
+    return move(r);
 }
 
 } // namespace codein

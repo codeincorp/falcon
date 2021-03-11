@@ -65,7 +65,7 @@ public:
 
 private:
     CsvFileScanner(const std::string& metadataFileName,
-        const std::string& dataFileName, const Expression& expr = Expression{});
+        const std::string& dataFileName, const Expression& expr = alwaysTrue);
 
     void checkError();
 

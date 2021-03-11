@@ -1,0 +1,1 @@
+a/uint, b/int, c/int, d/string, e/string

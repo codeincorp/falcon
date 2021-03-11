@@ -10,6 +10,10 @@
 
 namespace codein {
 
+const Expression alwaysTrue{.opCode = OpCode::Const, .leafOrChildren = std::any(true)};
+
+const Expression alwaysFalse{.opCode = OpCode::Const, .leafOrChildren = std::any(false)};
+
 using Evaluator = std::function<std::any (const Expression&, const Metadata&, const std::vector<std::any>&)>;
 
 const Evaluator evalNoop = [](const Expression&, const Metadata&, const std::vector<std::any>&) {
