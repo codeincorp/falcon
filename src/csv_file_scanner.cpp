@@ -197,7 +197,6 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
         if (notAny(hasFilterPassed)) {
             r.clear();
         }
-
     }
 
     return std::move(r);
