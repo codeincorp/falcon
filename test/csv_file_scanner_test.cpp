@@ -9,7 +9,7 @@ using namespace codein;
 
 TEST(CsvFileScannerTests, filterTest) 
 {
-    // a == 1u
+    // a == 2u
     Expression filterExpr {
         .opCode = OpCode::Eq,
         .leafOrChildren = vector<Expression>{
@@ -69,17 +69,18 @@ TEST(CsvFileScannerTests, filterTest2)
     Expression filterExpr {
         .opCode = OpCode::And,
 
-        // a == 1u
         .leafOrChildren = vector<Expression>{
             {
+                // a == 1u
                 .opCode = OpCode::Eq, 
                 .leafOrChildren = vector<Expression>{
                     {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
                     {.opCode = OpCode::Const, .leafOrChildren = std::any(1u)},
                 }
             },
-            // b >= 10
+           
             {
+                // b >= 10
                 .opCode = OpCode::Gte, 
                 .leafOrChildren = vector<Expression>{
                     {.opCode = OpCode::Ref, .leafOrChildren = std::any("b"s)},

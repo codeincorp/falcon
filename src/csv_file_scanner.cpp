@@ -200,7 +200,7 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
 
     }
 
-    return move(r);
+    return std::move(r);
 }
 
 } // namespace codein
