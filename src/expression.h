@@ -91,4 +91,8 @@ struct Expression {
     std::variant<std::any, std::vector<Expression>> leafOrChildren;
 };
 
+extern const Expression kAlwaysTrue;
+
+extern const Expression kAlwaysFalse;
+
 }

@@ -108,11 +108,11 @@ Metadata parseLineMetadata(const std::string& line)
 CsvFileScanner::CsvFileScanner(
     const std::string& metadataFileName,
     const std::string& dataFileName,
-    const Expression& expr)
+    const Expression& filterExpr)
     : metadata_()
     , dataFileName_(dataFileName)
     , dfs_()
-    , expr_(expr)
+    , filterExpr_(filterExpr)
     , readLines_(0)
     , errorLines_(0)
 {
@@ -191,6 +191,11 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
             }
 
             r.emplace_back(field);
+        }
+
+        auto hasFilterPassed = filterExpr_.eval(metadata_, r);
+        if (notAny(hasFilterPassed)) {
+            r.clear();
         }
     }
 
