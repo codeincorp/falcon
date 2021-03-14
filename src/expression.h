@@ -28,6 +28,7 @@ enum class OpCode {
     Not,
     And,
     Or,
+    Hash,
 };
 
 struct Expression {
