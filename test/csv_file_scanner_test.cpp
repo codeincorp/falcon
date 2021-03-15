@@ -3,9 +3,63 @@
 #include "metadata.h"
 #include "any_visitor.h"
 #include "csv_file_scanner.h"
+#include "expression.h"
 
 using namespace std;
 using namespace codein;
+
+using dataExpected = variant<any, vector<any>, vector<vector<any>>>;
+
+void testLoop (void(*func)(const vector<any>&, const dataExpected&), const string&& metadataFile, 
+        const string&& dataFile, const dataExpected& expectedData, const size_t expectedPass, 
+        const optional<Metadata>& expectedMetadata = nullopt, const Expression& filterExpr = kAlwaysTrue) {
+    auto scanner = makeIterator<CsvFileScanner>(metadataFile, dataFile, filterExpr);
+    if (expectedMetadata != nullopt) {
+        EXPECT_TRUE(scanner->getMetadata() == expectedMetadata.value());
+    }
+    scanner->open();
+    const size_t kExpectedPassLines = expectedPass;
+    size_t i = 0;
+
+    while (scanner->hasMore()) {
+        try {
+            auto row = scanner->processNext();
+            if (row == std::nullopt) {
+                break;
+            }
+
+            EXPECT_TRUE(row.has_value());
+            if (holds_alternative<vector<vector<any>>>(expectedData)) {
+                auto expectedFields = get<2>(expectedData);
+                func(row.value(), expectedFields[i]);
+            }
+            else {
+                func(row.value(), expectedData);
+            }
+
+            ++i;
+        }
+        catch(WrongMetadata e) {
+            cerr << "WrongMetadata thrown\n";
+            break;
+        }
+    }
+
+    EXPECT_EQ(i, kExpectedPassLines);
+}
+
+void(*check)(const vector<any>&, const dataExpected&) = [](const vector<any>& val, const dataExpected& expectedData) {
+    auto expectedFields = get<1>(expectedData);
+    EXPECT_EQ(val.size(), expectedFields.size());
+    for (size_t k = 0; k < expectedFields.size() ; ++k) {
+        const auto& actualType = val[k].type();
+        const auto& expectedType = expectedFields[k].type();
+        EXPECT_TRUE(actualType == expectedType)
+            << "actual type = " << actualType.name() << ", "
+            << "expected type = " << expectedType.name();
+        EXPECT_TRUE(val[k] == expectedFields[k]);
+    }
+};
 
 TEST(CsvFileScannerTests, filterTest) 
 {
@@ -18,19 +72,10 @@ TEST(CsvFileScannerTests, filterTest)
         }
     };
 
-    auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
-    scanner->open();
-
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
-
-        if (row == std::nullopt) {
-            break;
-        }
-
-        EXPECT_EQ(2u, any_cast<unsigned int>(row.value()[0]));
-    }
- 
+    testLoop([](const vector<any>& actual, const dataExpected& expected){ 
+        EXPECT_TRUE(get<0>(expected) == actual[0]); },
+        "fileScanner_filter_test.txt", "fileScanner_filter_test.csv", any(2u), 8, nullopt, filterExpr 
+    );
 }
 
 TEST(CsvFileScannerTests, filterTest1) 
@@ -44,23 +89,10 @@ TEST(CsvFileScannerTests, filterTest1)
         }
     };
 
-    const size_t kExpectedPassedLines = 7;
-    auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
-    scanner->open();
-    size_t i = 0;
-
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
-
-        if (row == std::nullopt) {
-            break;
-        }
-
-        EXPECT_TRUE(10 <= any_cast<int>(row.value()[1]));
-        i++;
-    }
-
-    EXPECT_EQ(i,kExpectedPassedLines);
+    testLoop([](const vector<any>& actual, const dataExpected& expected){ 
+        EXPECT_TRUE(actual[1] >= get<0>(expected)); },
+        "fileScanner_filter_test.txt", "fileScanner_filter_test.csv", any(10), 7, nullopt, filterExpr 
+    );
 }
 
 TEST(CsvFileScannerTests, filterTest2)
@@ -90,24 +122,12 @@ TEST(CsvFileScannerTests, filterTest2)
         }
     };
 
-    const size_t kExpectedPassedLines = 2;
-    auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
-    scanner->open();
-    size_t i = 0;
-
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
-
-        if (row == std::nullopt) {
-            break;
-        }
-
-        EXPECT_EQ(1u, any_cast<unsigned int>(row.value()[0]));
-        EXPECT_GE(any_cast<int>(row.value()[1]), 10);
-        i++;
-    }
-
-    EXPECT_EQ(i, kExpectedPassedLines);
+    vector<any> expectedData {1u, 10};
+    testLoop([](const vector<any>& actual, const dataExpected& expected) { 
+        EXPECT_TRUE(get<1>(expected)[0] == actual[0] );
+        EXPECT_TRUE(actual[1] >= get<1>(expected)[1]); },
+        "fileScanner_filter_test.txt", "fileScanner_filter_test.csv", expectedData, 2, nullopt, filterExpr 
+    );
 }
 
 TEST(CsvFileScannerTests, filterTest3) 
@@ -121,23 +141,9 @@ TEST(CsvFileScannerTests, filterTest3)
         }
     };
 
-    const size_t kExpectedPassedLines = 3;
-    auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
-    scanner->open();
-    size_t i = 0;
-
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
-
-        if (row == std::nullopt) {
-            break;
-        }
-
-        EXPECT_EQ("OTTOGI", any_cast<string>(row.value()[3]));
-        i++;
-    }
-
-    EXPECT_EQ(i , kExpectedPassedLines);
+    testLoop([](const vector<any>& actual, const dataExpected& expected) {EXPECT_TRUE(get<0>(expected) == actual[3]);},
+        "fileScanner_filter_test.txt", "fileScanner_filter_test.csv", any("OTTOGI"s), 3, nullopt, filterExpr 
+    );
 }
 
 TEST(CsvFileScannerTests, filterTest4) 
@@ -158,23 +164,9 @@ TEST(CsvFileScannerTests, filterTest4)
         }
     };
 
-    const size_t kExpectedPassedLines = 3;
-    auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
-    scanner->open();
-    size_t i = 0;
-
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
-
-        if (row == std::nullopt) {
-            break;
-        }
-
-        EXPECT_EQ("OTTOGI1", any_cast<string>(row.value()[4]));
-        i++;
-    }
-
-    EXPECT_EQ(i, kExpectedPassedLines);
+    testLoop([](const vector<any>& actual, const dataExpected& expected) {EXPECT_TRUE(get<0>(expected) == actual[4]);},
+        "fileScanner_filter_test.txt", "fileScanner_filter_test.csv", any("OTTOGI1"s), 3, nullopt, filterExpr 
+    );
 }
 
 TEST(CsvFileScannerTests, nonExistentFieldNameTest) 
@@ -204,23 +196,9 @@ TEST(CsvFileScannerTests, noPassFilterTest)
         }
     };
 
-    const size_t kExpectedPassedLines = 0;
-    auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
-    scanner->open();
-    size_t i = 0;
-
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
-        EXPECT_TRUE(row == std::nullopt);
-
-        if (row == std::nullopt) {
-            break;
-        }
-
-        i++;
-    }
-
-    EXPECT_EQ(i, kExpectedPassedLines);
+    testLoop([](const vector<any>& actual, const dataExpected& expected) {}, 
+        "fileScanner_filter_test.txt", "fileScanner_filter_test.csv", any(0), 0, nullopt, filterExpr 
+    );
 }
 
 TEST(CsvFileScannerTests, BasicTest)
@@ -230,39 +208,14 @@ TEST(CsvFileScannerTests, BasicTest)
         { "b", tiFloat },
         { "c", tiString },
     };
-    vector<string> lines{
-        "1,1.1,John Smith",
-        "2,2.2,Alex Smith",
-        "3,3.3,Alex Swanson",
+
+    vector<vector<any>> expectedLines{
+        {1, 1.1f, "John Smith"s},
+        {2, 2.2f, "Alex Smith"s},
+        {3, 3.3f, "Alex Swanson"s}
     };
 
-    vector<string> names{
-        "John Smith",
-        "Alex Smith",
-        "Alex Swanson",
-    };
-    
-    auto scanner = makeIterator<CsvFileScanner>("metadata_basic_test.txt", "data_basic_test.csv");
-    
-    scanner->open();
-    size_t i = 0;
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
-
-        if (row == std::nullopt) {
-            break;
-        }
-
-        EXPECT_TRUE(row.has_value());
-        EXPECT_TRUE(row.value().size() == 3);
-        EXPECT_EQ(i + 1, any_cast<int>(row.value()[0]));
-        EXPECT_FLOAT_EQ((i + 1) * 1.1, any_cast<float>(row.value()[1]));
-        EXPECT_EQ(names[i], any_cast<string>(row.value()[2]));
-
-        ++i;
-    }
-
-    EXPECT_EQ(i, 3);
+    testLoop(check, "metadata_basic_test.txt", "data_basic_test.csv", expectedLines, expectedLines.size(), metadata );
 }
 
 TEST(CsvFileScannerTests, FileNameConstructorTest)
@@ -275,35 +228,13 @@ TEST(CsvFileScannerTests, FileNameConstructorTest)
         { "d", tiString },
     };
     // Must be same as data.csv
-    vector<string> expectedNames{
-        "John Smith",
-        "Alex Smith",
-        "Alex Swanson",
+    vector<vector<any>> expectedLines {
+        {1,1.1f, 1.1, "John Smith"s},
+        {2,2.2f, 2.2, "Alex Smith"s},
+        {3,3.3f, 3.3, "Alex Swanson"s},
     };
 
-    auto scanner = makeIterator<CsvFileScanner>("metadata.txt", "data.csv");
-    EXPECT_TRUE(scanner->getMetadata() == expectedMetadata);
-    
-    scanner->open();
-    size_t i = 0;
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
-        
-        if (row == std::nullopt) {
-            break;
-        }
-
-        EXPECT_TRUE(row.has_value());
-        EXPECT_TRUE(row.value().size() == expectedMetadata.size());
-        EXPECT_EQ(i + 1, any_cast<int>(row.value()[0]));
-        EXPECT_FLOAT_EQ((i + 1) * 1.1f, any_cast<float>(row.value()[1]));
-        EXPECT_DOUBLE_EQ((i + 1) * 1.1, any_cast<double>(row.value()[2]));
-        EXPECT_EQ(expectedNames[i], any_cast<string>(row.value()[3]));
-
-        ++i;
-    }
-
-    EXPECT_EQ(i, 3);
+    testLoop(check, "metadata.txt", "data.csv", expectedLines, expectedLines.size(), expectedMetadata);
 }
 
 TEST(CsvFileScannerTests, FileNameConstructorTest2)
@@ -316,52 +247,14 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
 
     };
 
-    vector<string> expectedLines{
-        "chapaguri, 2.99 , 600, Nongshim",
-        "shin Ramyun, 1.99, 450, Nongshim",
-        "Jhin Ramyun, 1.89, 777, OTTOGI",
-        "Paldo BiBim Myun, 2.10, 280, Paldo"
+    vector<vector<any>> expectedFields{
+        {"chapaguri"s, 2.99f , 600, "Nongshim"s},
+        {"shin Ramyun"s, 1.99f, 450, "Nongshim"s},
+        {"Jhin Ramyun"s, 1.89f, 777, "OTTOGI"s},
+        {"Paldo BiBim Myun"s, 2.10f, 280, "Paldo"s}
     };
 
-    vector<vector<any>> expectedFields(expectedLines.size());
-    vector<string> fields;
-    for (size_t i = 0; i < expectedLines.size(); ++i) {
-        fields = parseLine(expectedLines[i]);
-
-        for (size_t k = 0; k < expectedMetadata1.size(); ++k) {
-            expectedFields[i].emplace_back(convertTo(
-                anyConverters, expectedMetadata1[k].typeIndex, fields[k]
-                )
-            );
-        }
-    }
-
-    auto scanner = makeIterator<CsvFileScanner>("metadata1.txt", "data1.csv");
-    EXPECT_TRUE(scanner->getMetadata() == expectedMetadata1);
-    
-    size_t i = 0;
-    scanner->open();
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
-
-        if (row == std::nullopt) {
-            break;
-        }
-
-        const vector<any>& val = row.value();
-        EXPECT_TRUE(row.has_value());
-        EXPECT_TRUE(val.size() == expectedFields[i].size());
-        for (size_t k = 0; k < expectedFields.size() ; ++k) {
-            const auto& actualType = val[k].type();
-            const auto& expectedType = expectedFields[i][k].type();
-            EXPECT_TRUE(actualType == expectedType)
-                << "actual type = " << actualType.name() << ", "
-                << "expected type = " << expectedType.name();
-            EXPECT_TRUE(val[k] == expectedFields[i][k]);
-        }
-        
-        ++i;
-    }
+    testLoop(check, "metadata1.txt", "data1.csv", expectedFields, expectedFields.size(), expectedMetadata1);
 
     Metadata expectedMetadata2{
         {"num1", tiInt},
@@ -379,32 +272,7 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
         {8, 15u, "FDR"s, 6.15, "Reid"s}
     };
 
-    scanner = makeIterator<CsvFileScanner>("metadata2.txt", "data2.csv");
-    EXPECT_TRUE(scanner->getMetadata() == expectedMetadata2);
-    
-    i = 0;
-    scanner->open();
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
-
-        if (row == std::nullopt) {   
-            break;
-        }
-
-        EXPECT_TRUE(row.has_value());
-        const vector<any>& val = row.value();
-        EXPECT_TRUE(val.size() == expectedFields2[i].size());
-        for (size_t k = 0; k < 5 ; ++k) {
-            const auto& actualType = val[k].type();
-            const auto& expectedType = expectedFields2[i][k].type();
-            EXPECT_TRUE(actualType == expectedType)
-                << "actual type = " << actualType.name() << ", "
-                << "expected type = " << expectedType.name();
-            EXPECT_TRUE(val[k] == expectedFields2[i][k]);
-        }
-
-        ++i;
-    }
+    testLoop(check, "metadata2.txt", "data2.csv", expectedFields2, expectedFields2.size(), expectedMetadata2);
 }
 
 TEST(CsvFileScannerTests, FileNameConstructorFailTests) {
@@ -452,37 +320,7 @@ TEST(CsvFileScannerTests, InvalidLinesInFileTest1) {
         {"line29"s, 14, 14u},
         {"line30"s, 234, 3u}
     };
-
-    auto scanner = makeIterator<CsvFileScanner>("different_fields.txt", "different_fields.csv");
-    EXPECT_TRUE(scanner->getMetadata() == expectedMetadata);
-    scanner->open();
-    const size_t kValidLinesInDataFile = 14;
-    size_t i = 0;
-
-    while (scanner->hasMore()) {
-        // 14 = number of correct lines in the file
-        if (i == 14) {
-            EXPECT_THROW(scanner->processNext(), WrongMetadata);
-            break;
-        }
-        auto row = scanner->processNext();
-
-        // processNext will skip wrong lines and return next valid line
-        EXPECT_TRUE(row.has_value());
-        const vector<any>& val = row.value();
-        EXPECT_TRUE(val.size() == expectedFields[i].size());
-        for (size_t k = 0; k < expectedMetadata.size(); ++k) {
-            const auto& actualType = val[k].type();
-            const auto& expectedType = expectedFields[i][k].type();
-            EXPECT_TRUE(actualType == expectedType)
-                << "actual type = " << actualType.name() << ", "
-                << "expected type = " << expectedType.name();
-            EXPECT_TRUE(val[k] == expectedFields[i][k]);
-        }
-
-        ++i;
-    }
-    EXPECT_EQ(i, kValidLinesInDataFile);
+    testLoop(check, "different_fields.txt", "different_fields.csv", expectedFields, expectedFields.size(), expectedMetadata);
 }
 
 /* different_fields2.csv has 9 total invalid lines which is more than half of the entire lines. 
@@ -506,35 +344,7 @@ TEST(CsvFileScannerTests, InvalidLinesInFileTest2) {
         {4.84f, "write"s, 1},
         {3.33f, "medicine"s, 90}
     };
-
-    auto scanner = makeIterator<CsvFileScanner>("different_fields2.txt", "different_fields2.csv");
-    EXPECT_TRUE(scanner->getMetadata() == expectedMetadata2);
-    scanner->open();
-    const size_t kValidLinesInDataFile1 = 8;
-    size_t i = 0;
-
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
-
-        if (row == std::nullopt) {
-            break;
-        }
-
-        EXPECT_TRUE(row.has_value());
-        const vector<any>& val = row.value();
-        EXPECT_TRUE(val.size() == expectedFields2[i].size());
-        for (size_t k = 0; k < expectedMetadata2.size(); ++k) {
-            const auto& actualType = val[k].type();
-            const auto& expectedType = expectedFields2[i][k].type();
-            EXPECT_TRUE(actualType == expectedType)
-                << "actual type = " << actualType.name() << ", "
-                << "expected type = " << expectedType.name();
-            EXPECT_TRUE(val[k] == expectedFields2[i][k]);
-        }
-
-        ++i;
-    }
-    EXPECT_EQ(i, kValidLinesInDataFile1);
+    testLoop(check, "different_fields2.txt", "different_fields2.csv", expectedFields2, expectedFields2.size(), expectedMetadata2);
 }
 
 /* In the case 1, further reading process should be aborted because error lines are more than half
@@ -552,35 +362,7 @@ TEST(CsvFileScannerTests, InvalidLinesInFileTest3) {
     vector<any> expectedFields3 {
         "correct"s, 1, 1u, "correct"s
     };
-
-    auto scanner = makeIterator<CsvFileScanner>("different_fields3.txt", "different_fields3.csv");
-    EXPECT_TRUE(scanner->getMetadata() == expectedMetadata3);
-    scanner->open();
-    const size_t kValidLinesInDataFile2 = 26;
-    size_t i = 0;
-
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
-
-        if (row == std::nullopt) {
-            break;
-        }
-
-        EXPECT_TRUE(row.has_value());
-        const vector<any>& val = row.value();
-        EXPECT_TRUE(val.size() == expectedFields3.size());
-        for (size_t k = 0; k < expectedMetadata3.size(); ++k) {
-            const auto& actualType = val[k].type();
-            const auto& expectedType = expectedFields3[k].type();
-            EXPECT_TRUE(actualType == expectedType)
-                << "actual type = " << actualType.name() << ", "
-                << "expected type = " << expectedType.name();
-            EXPECT_TRUE(val[k] == expectedFields3[k]);
-        }
-
-        ++i;
-    }
-    EXPECT_EQ(i,kValidLinesInDataFile2);
+    testLoop(check, "different_fields3.txt", "different_fields3.csv", expectedFields3, 26, expectedMetadata3);
 }
 
 TEST(CsvFileScannerTests, ConvertToTypeidTest)
@@ -595,124 +377,60 @@ TEST(CsvFileScannerTests, ConvertToTypeidTest)
     EXPECT_EQ(convertToTypeid("vector"), tiVoid);
 }
 
-TEST(CsvFileScannerTests, ParseLineTest) {
-    // normal case
-    vector<string> expectedLine{
-        "field1",
-        "field2",
-        "field3"
-    };
-    vector<string> actualLine = parseLine(" field1, field2, field3  ");
+void checkLine(const vector<string>& expectedLine, string&& realLine) {
+    vector<string> actualLine = parseLine(realLine);
     EXPECT_EQ(expectedLine, actualLine);
-
-    // empty line
-    vector<string> expectedLine1 {
-        ""
-    };
-    actualLine = parseLine("");
-    EXPECT_EQ(expectedLine1, actualLine);
-
-    // space bars only
-    vector<string> expectedLine2 {
-        ""
-    };
-    actualLine = parseLine("       ");
-    EXPECT_EQ(expectedLine2, actualLine);
-
-    // commas only
-    vector<string> expectedLine3 {
-        "",
-        "",
-        "",
-        ""
-    };
-    actualLine = parseLine(", ,,");
-    EXPECT_EQ(expectedLine3, actualLine);
-
-    // spaces between 
-    vector<string> expectedLine4 {
-        "3 34 5",
-        "Jan/14 / 2007",
-        "location address SSN",
-        "1"
-    };
-    actualLine = parseLine("3 34 5, Jan/14 / 2007 , location address SSN  ,1");
-    EXPECT_EQ(expectedLine4, actualLine);
-
-    // tab character
-    vector<string> expectedLine5 {
-        "tab\t orbit",
-        "instructor",
-        "computer",
-        "calculator"
-    };
-    actualLine = parseLine("tab\t orbit , instructor,\t\tcomputer,  calculator\t\t");
-    EXPECT_EQ(expectedLine5, actualLine);
 }
 
-TEST(CsvFileScannerTests, ParseLineMetadataTest)
-{
-    // true cases
-    Metadata expectedMetadata{
-        {"abc", tiFloat},
-        {"bcd", tiInt}
+TEST(CsvFileScannerTests, ParseLineTest) {
+    vector<vector<string>> expectedLines {
+        // normal case
+        {"field1","field2","field3"},
+        // empty line
+        {""},
+        // space bars only
+        {""},
+        // commas only
+        {"", "", "", ""},
+        // spaces between
+        {"3 34 5", "Jan/14 / 2007", "location address SSN", "1"},
+        // tab character
+        {"tab\t orbit", "instructor", "computer", "calculator"}
     };
-    auto actualMetadata = parseLineMetadata("abc/float, bcd/int");
+
+    checkLine(expectedLines[0], " field1, field2, field3  ");
+    checkLine(expectedLines[1], "");
+    checkLine(expectedLines[2], "       ");
+    checkLine(expectedLines[3], ", ,,");
+    checkLine(expectedLines[4], "3 34 5, Jan/14 / 2007 , location address SSN  ,1");
+    checkLine(expectedLines[5], "tab\t orbit , instructor,\t\tcomputer,  calculator\t\t");
+}
+
+void checkMetadata(Metadata& expectedMetadata, string&& line) {
+    auto actualMetadata = parseLineMetadata(line);
     EXPECT_EQ(expectedMetadata.size(), actualMetadata.size());
     for (size_t i = 0; i < expectedMetadata.size(); ++i) {
         EXPECT_EQ(expectedMetadata[i].fieldName, actualMetadata[i].fieldName);
         EXPECT_EQ(expectedMetadata[i].typeIndex, actualMetadata[i].typeIndex);
     }
+}
 
-    Metadata expectedMetadata1{
-        {"real number", tiFloat},
-        {"quantity", tiInt},
-        {"name", tiString}
+TEST(CsvFileScannerTests, ParseLineMetadataTest)
+{
+    // true cases
+    vector<Metadata> expectedMetadata {
+        {{"abc", tiFloat},{"bcd", tiInt}},
+        {{"real number", tiFloat}, {"quantity", tiInt}, {"name", tiString}},
+        {{"pi", tiDouble}, {"e", tiDouble}, {"size", tiUint}},
+        {{"velocity", tiDouble}, {"x", tiInt}, {"y", tiInt}, {"read", tiString}},
+        {{"jamMin", tiString}, {"tori", tiDouble}, {"Number", tiInt}}
     };
-    actualMetadata = parseLineMetadata("  real number  /float, quantity   /int, name/    string   ");
-    EXPECT_EQ(expectedMetadata1.size(), actualMetadata.size());
-    for (size_t i = 0; i < expectedMetadata1.size(); ++i) {
-        EXPECT_EQ(expectedMetadata1[i].fieldName, actualMetadata[i].fieldName);
-        EXPECT_EQ(expectedMetadata1[i].typeIndex, actualMetadata[i].typeIndex);
-    }
 
-    Metadata expectedMetadata2{
-        {"pi", tiDouble},
-        {"e", tiDouble},
-        {"size", tiUint}
-    };
-    actualMetadata = parseLineMetadata("pi  /double, e   /double, size/    uint   ");
-    EXPECT_EQ(expectedMetadata2.size(), actualMetadata.size());
-    for (size_t i = 0; i < expectedMetadata2.size(); ++i) {
-        EXPECT_EQ(expectedMetadata2[i].fieldName, actualMetadata[i].fieldName);
-        EXPECT_EQ(expectedMetadata2[i].typeIndex, actualMetadata[i].typeIndex);
-    }
-
-    Metadata expectedMetadata3{
-        {"velocity", tiDouble},
-        {"x", tiInt},
-        {"y", tiInt},
-        {"read", tiString}
-    };
-    actualMetadata = parseLineMetadata(" velocity / double , x   /int, y/int,read/string");
-    EXPECT_EQ(expectedMetadata3.size(), actualMetadata.size());
-    for (size_t i = 0; i < expectedMetadata3.size(); ++i) {
-        EXPECT_EQ(expectedMetadata3[i].fieldName, actualMetadata[i].fieldName);
-        EXPECT_EQ(expectedMetadata3[i].typeIndex, actualMetadata[i].typeIndex);
-    }
-
-    // tab cases
-    Metadata expectedMetadata4{
-        {"jamMin", tiString},
-        {"tori", tiDouble},
-        {"Number", tiInt},
-    };
-    actualMetadata = parseLineMetadata("jamMin\t/string, tori/\tdouble, \tNumber/ int\t\t");
-    EXPECT_EQ(expectedMetadata4.size(), actualMetadata.size());
-    for (size_t i = 0; i < expectedMetadata4.size(); ++i) {
-        EXPECT_EQ(expectedMetadata4[i].fieldName, actualMetadata[i].fieldName);
-        EXPECT_EQ(expectedMetadata4[i].typeIndex, actualMetadata[i].typeIndex);
-    }
+    checkMetadata(expectedMetadata[0], "abc/float, bcd/int");
+    checkMetadata(expectedMetadata[1], "  real number  /float, quantity   /int, name/    string   ");
+    checkMetadata(expectedMetadata[2], "pi  /double, e   /double, size/    uint   ");
+    checkMetadata(expectedMetadata[3], " velocity / double , x   /int, y/int,read/string");
+    checkMetadata(expectedMetadata[4], "jamMin\t/string, tori/\tdouble, \tNumber/ int\t\t");
 
     // Invalid Metadata cases
     // no slash
