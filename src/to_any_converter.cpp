@@ -1,5 +1,6 @@
 #include <string>
 #include <typeindex>
+#include <unordered_map>
 #include "to_any_converter.h"
 
 namespace codein {
@@ -22,6 +23,16 @@ AnyConverterMap anyConverters {
     toAnyConverter<std::string>([](const std::string& s) {
         return s;
     }),
+};
+
+const std::unordered_map<std::string, std::type_index> types {
+    {"int", std::type_index(typeid(int))},
+    {"bool", std::type_index(typeid(bool))},
+    {"void", std::type_index(typeid(void))},
+    {"uint", std::type_index(typeid(unsigned))},
+    {"float", std::type_index(typeid(float))},
+    {"string", std::type_index(typeid(std::string))},
+    {"double", std::type_index(typeid(double))}
 };
 
 const std::type_index tiVoid = std::type_index(typeid(void));

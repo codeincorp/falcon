@@ -78,6 +78,8 @@ inline std::any convertTo(
  */
 extern AnyConverterMap anyConverters;
 
+extern const std::unordered_map<std::string, std::type_index> types;
+
 /// Type index for void type.
 extern const std::type_index tiVoid;
 /// Type index for bool type.

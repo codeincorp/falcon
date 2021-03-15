@@ -42,20 +42,8 @@ std::vector<std::string> parseLine(const std::string& line)
 
 std::type_index convertToTypeid(const std::string& typeName)
 {
-    if(typeName == "int") {
-        return tiInt;
-    }
-    else if (typeName == "float") {
-        return tiFloat;
-    }
-    else if (typeName == "uint") {
-        return tiUint;
-    }
-    else if (typeName == "double") {
-        return tiDouble;
-    }
-    else if (typeName == "string") {
-        return tiString;
+    if(types.find(typeName) != types.end()) {
+        return types.find(typeName)->second;
     }
     else {
         return tiVoid;

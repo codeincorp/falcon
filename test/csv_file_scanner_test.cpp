@@ -586,6 +586,7 @@ TEST(CsvFileScannerTests, InvalidLinesInFileTest3) {
 TEST(CsvFileScannerTests, ConvertToTypeidTest)
 {
     EXPECT_EQ(convertToTypeid("int"), tiInt);
+    EXPECT_EQ(convertToTypeid("bool"), tiBool);
     EXPECT_EQ(convertToTypeid("double"), tiDouble);
     EXPECT_EQ(convertToTypeid("string"), tiString);
     EXPECT_EQ(convertToTypeid("float"), tiFloat);
