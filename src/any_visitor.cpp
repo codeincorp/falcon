@@ -9,39 +9,20 @@
 
 namespace codein {
 
-template <typename T>
-struct StreamOutputOp {
-    void operator()(std::ostream& os, const T& x) const {
-        os << x;
-    }
-};
+using AnyBinComp = std::function<bool (const std::any&, const std::any&)>;
 
-AnyVisitorMap anyVisitors {
-    toAnyVisitor<bool>(StreamOutputOp<bool>()),
-    toAnyVisitor<int>(StreamOutputOp<int>()),
-    toAnyVisitor<unsigned>(StreamOutputOp<unsigned>()),
-    toAnyVisitor<float>(StreamOutputOp<float>()),
-    toAnyVisitor<double>(StreamOutputOp<double>()),
-    toAnyVisitor<std::string>(StreamOutputOp<std::string>()),
-};
-
-std::ostream& operator<<(std::ostream& os, const std::any& a)
+template <typename T, typename F>
+constexpr std::pair<const std::type_index, AnyBinComp>
+toAnyBinCompVisitor(F const &f)
 {
-    if (const auto it = codein::anyVisitors.find(std::type_index(a.type()));
-        it != codein::anyVisitors.cend()) {
-        return it->second(os, a);
-    }
-
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const std::vector<std::any>& va)
-{
-    for (const auto& a: va) {
-        os << a << " ";
-    }
-
-    return os;
+    return {
+        std::type_index(typeid(T)),
+        [g = f](const std::any& lhs, const std::any& rhs) -> bool
+        {
+            static_assert(!std::is_void_v<T>);
+            return g(std::any_cast<const T&>(lhs), std::any_cast<const T&>(rhs));
+        }
+    };
 }
 
 using AnyBinCompVisitorMap = std::unordered_map<std::type_index, AnyBinComp>;
@@ -135,6 +116,22 @@ bool operator>=(const std::any& lhs, const std::any& rhs)
     return apply(anyGteVisitors, lhs, rhs);
 }
 
+using AnyBinArithOp = std::function<std::any (const std::any&, const std::any&)>;
+
+template <typename T, typename F>
+constexpr std::pair<const std::type_index, AnyBinArithOp>
+toAnyBinArithOpVisitor(F const &f)
+{
+    return {
+        std::type_index(typeid(T)),
+        [g = f](const std::any& lhs, const std::any& rhs) -> std::any
+        {
+            static_assert(!std::is_void_v<T>);
+            return g(std::any_cast<const T&>(lhs), std::any_cast<const T&>(rhs));
+        }
+    };
+}
+
 using AnyBinArithOpVisitorMap = std::unordered_map<std::type_index, AnyBinArithOp>;
 
 inline std::any apply(const AnyBinArithOpVisitorMap& opMap, const std::any& lhs, const std::any& rhs)
@@ -207,6 +204,50 @@ AnyBinArithOpVisitorMap anyModVisitors{
 std::any operator%(const std::any& lhs, const std::any& rhs)
 {
     return apply(anyModVisitors, lhs, rhs);
+}
+
+using AnyUnaryOp = std::function<std::any (const std::any&)>;
+
+template <typename T, typename F>
+constexpr std::pair<const std::type_index, AnyUnaryOp>
+toAnyUnaryVisitor(F const &f)
+{
+    return {
+        std::type_index(typeid(T)),
+        [g = f](const std::any& lhs) -> std::any
+        {
+            static_assert(!std::is_void_v<T>);
+            return g(std::any_cast<const T&>(lhs));
+        }
+    };
+}
+
+bool notAny(const std::any& lhs) {
+    return !std::any_cast<bool>(lhs);
+};
+
+using AnyUnaryOpVisitorMap = std::unordered_map<std::type_index, AnyUnaryOp>;
+
+inline std::any apply(const AnyUnaryOpVisitorMap& opMap, const std::any& lhs)
+{
+    auto ti = std::type_index(lhs.type());
+    const auto it = opMap.find(ti);
+    assert(it != opMap.cend());
+
+    return it->second(lhs);
+}
+
+AnyUnaryOpVisitorMap anyHashVisitors{
+    toAnyUnaryVisitor<int>(std::hash<int>()),
+    toAnyUnaryVisitor<unsigned>(std::hash<unsigned>()),
+    toAnyUnaryVisitor<float>(std::hash<float>()),
+    toAnyUnaryVisitor<double>(std::hash<double>()),
+    toAnyUnaryVisitor<std::string>(std::hash<std::string>()),
+};
+
+std::any hashAny(const std::any& lhs)
+{
+    return codein::apply(anyHashVisitors, lhs);
 }
 
 }
