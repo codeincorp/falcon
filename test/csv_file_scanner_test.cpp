@@ -14,6 +14,8 @@ void testLoop (void(*func)(const vector<any>&, const dataExpected&), const strin
         const string&& dataFile, const dataExpected& expectedData, const size_t expectedPass, 
         const optional<Metadata>& expectedMetadata = nullopt, const Expression& filterExpr = kAlwaysTrue) {
     auto scanner = makeIterator<CsvFileScanner>(metadataFile, dataFile, filterExpr);
+
+    //  filterTests don't give metadata, which is why expectedMetadata is optional. check metadata only when it is given
     if (expectedMetadata != nullopt) {
         EXPECT_TRUE(scanner->getMetadata() == expectedMetadata.value());
     }
@@ -22,6 +24,7 @@ void testLoop (void(*func)(const vector<any>&, const dataExpected&), const strin
     size_t i = 0;
 
     while (scanner->hasMore()) {
+        //  processNext throws WrongMetadata if readLines_ > 30 and errorLines_ > readLines_ /2
         try {
             auto row = scanner->processNext();
             if (row == std::nullopt) {
@@ -29,6 +32,9 @@ void testLoop (void(*func)(const vector<any>&, const dataExpected&), const strin
             }
 
             EXPECT_TRUE(row.has_value());
+
+            // dataExpected& expectedData can either hold vector<any> or vector<vector<any>>
+            // many tests call check(line 57) function, which assumes dataExpected& expectedData holds vector<any> 
             if (holds_alternative<vector<vector<any>>>(expectedData)) {
                 auto expectedFields = get<2>(expectedData);
                 func(row.value(), expectedFields[i]);
