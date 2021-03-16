@@ -3,6 +3,7 @@
 #include "metadata.h"
 #include "any_visitor.h"
 #include "csv_file_scanner.h"
+#include "to_any_converter.h"
 
 using namespace std;
 using namespace codein;
