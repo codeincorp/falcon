@@ -26,6 +26,6 @@ std::any operator%(const std::any& lhs, const std::any& rhs);
 
 bool notAny(const std::any& lhs);
 
-std::any hashAny(const std::any& lhs);
+std::size_t hashAny(const std::any& lhs);
 
 }

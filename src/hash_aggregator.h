@@ -1,11 +1,13 @@
 #include <any>
 #include <memory>
 #include <optional>
+#include <tuple>
 #include <vector>
 #include <unordered_map>
 #include <utility>
 
 #include "iterator.h"
+#include "any_visitor.h"
 #include "expression.h"
 
 #pragma once
@@ -13,22 +15,23 @@
 namespace codein {
 
 /**
- * @brief Hash aggregation iterator. Selects columns from input columns.
+ * @brief Hash aggregation iterator.
  */
 class HashAggregator : public Iterator {
 public:
     template <typename T, typename... ArgTs>
     friend std::unique_ptr<Iterator> makeIterator(ArgTs&&...);
 
-    void open() override
-    {}
+    void open() override;
 
     void reopen() override
-    {}
+    {
+        open();
+    }
 
     bool hasMore() const override
     {
-        return false;
+        return it_ != hashStorage_.cend();
     }
 
     /**
@@ -51,12 +54,12 @@ public:
 
 private:
     /**
-     * @brief Construct a new HashAggregator object
+     * @brief Constructs a new HashAggregator object.
      * 
      * @param child 
-     * @param outputMetadata Includes aggregation variables
-     * @param groupKeyCols Columns for group key
-     * @param aggExprs Aggregation expressions
+     * @param outputMetadata Includes aggregation variables.
+     * @param groupKeyCols Columns for group key.
+     * @param aggExprs Aggregation expressions.
      */
     HashAggregator(
         std::unique_ptr<Iterator>&& child,
@@ -64,26 +67,48 @@ private:
         const std::vector<std::string>& groupKeyCols,
         const std::vector<Expression>& aggExprs);
 
-    Expression createHashExpr(const std::vector<std::string>& groupKeyCols);
+    struct Hasher {
+        std::size_t operator()(const std::vector<std::any>& groupKeyVals) const
+        {
+            std::size_t h = 0;
+            for (const auto& keyVal: groupKeyVals) {
+                h ^= hashAny(keyVal);
+            }
 
-    class HashGroupKey {
-
-    private:
-        const Metadata& metadata;
-        const Expression& hashExpr_;
+            return h;
+        }
     };
 
-    constexpr static auto hashGroupKeys = [&hashExpr_, &groupKeyMetadata_](const std::vector<std::any>& groupKeyVals) {
-        return std::any_cast<std::size_t>(hashExpr_.eval(groupKeyMetadata_, groupKeyVals));
+    struct KeyEqual {
+        bool operator()(const std::vector<std::any>& lhs, const std::vector<std::any>& rhs) const
+        {
+            std::size_t n = lhs.size();
+            if (n != rhs.size()) {
+                return false;
+            }
+
+            for (std::size_t i = 0; i < n; ++i) {
+                if (lhs[i] != rhs[i]) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     };
+
+    using GroupKeyType = std::vector<std::any>;
+    using HashStorageType = std::unordered_map<GroupKeyType, int, Hasher, KeyEqual>;
+
+    static std::vector<Expression> createGroupKeyProjExprs(const Metadata&, const std::vector<std::string>&);
 
     std::unique_ptr<Iterator> child_;
     const Metadata inputMetadata_;
     const Metadata outputMetadata_;
-    const Metadata groupKeyMetadata_;
-    const Expression hashExpr_;
+    const std::vector<Expression> groupKeyProjExprs_;
     const std::vector<Expression> aggExprs_;
-    // std::unordered_map<std::vector<std::any>
+    HashStorageType hashStorage_;
+    HashStorageType::const_iterator it_;
 };
 
 } // namespace codein

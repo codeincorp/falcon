@@ -206,15 +206,19 @@ std::any operator%(const std::any& lhs, const std::any& rhs)
     return apply(anyModVisitors, lhs, rhs);
 }
 
-using AnyUnaryOp = std::function<std::any (const std::any&)>;
+bool notAny(const std::any& lhs) {
+    return !std::any_cast<bool>(lhs);
+};
+
+using AnyHashOp = std::function<std::size_t (const std::any&)>;
 
 template <typename T, typename F>
-constexpr std::pair<const std::type_index, AnyUnaryOp>
-toAnyUnaryVisitor(F const &f)
+constexpr std::pair<const std::type_index, AnyHashOp>
+toAnyHashVisitor(F const &f)
 {
     return {
         std::type_index(typeid(T)),
-        [g = f](const std::any& lhs) -> std::any
+        [g = f](const std::any& lhs) -> std::size_t
         {
             static_assert(!std::is_void_v<T>);
             return g(std::any_cast<const T&>(lhs));
@@ -222,13 +226,9 @@ toAnyUnaryVisitor(F const &f)
     };
 }
 
-bool notAny(const std::any& lhs) {
-    return !std::any_cast<bool>(lhs);
-};
+using AnyHashOpVisitorMap = std::unordered_map<std::type_index, AnyHashOp>;
 
-using AnyUnaryOpVisitorMap = std::unordered_map<std::type_index, AnyUnaryOp>;
-
-inline std::any apply(const AnyUnaryOpVisitorMap& opMap, const std::any& lhs)
+inline std::size_t apply(const AnyHashOpVisitorMap& opMap, const std::any& lhs)
 {
     auto ti = std::type_index(lhs.type());
     const auto it = opMap.find(ti);
@@ -237,15 +237,15 @@ inline std::any apply(const AnyUnaryOpVisitorMap& opMap, const std::any& lhs)
     return it->second(lhs);
 }
 
-AnyUnaryOpVisitorMap anyHashVisitors{
-    toAnyUnaryVisitor<int>(std::hash<int>()),
-    toAnyUnaryVisitor<unsigned>(std::hash<unsigned>()),
-    toAnyUnaryVisitor<float>(std::hash<float>()),
-    toAnyUnaryVisitor<double>(std::hash<double>()),
-    toAnyUnaryVisitor<std::string>(std::hash<std::string>()),
+AnyHashOpVisitorMap anyHashVisitors{
+    toAnyHashVisitor<int>(std::hash<int>()),
+    toAnyHashVisitor<unsigned>(std::hash<unsigned>()),
+    toAnyHashVisitor<float>(std::hash<float>()),
+    toAnyHashVisitor<double>(std::hash<double>()),
+    toAnyHashVisitor<std::string>(std::hash<std::string>()),
 };
 
-std::any hashAny(const std::any& lhs)
+std::size_t hashAny(const std::any& lhs)
 {
     return codein::apply(anyHashVisitors, lhs);
 }

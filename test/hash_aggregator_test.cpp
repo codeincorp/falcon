@@ -51,4 +51,18 @@ TEST_F(HashAggregatorTests, BasicTest)
 
     auto mockScanner = makeIterator<MockScanner>(metadata, lines);
     auto hashAggregator = makeIterator<HashAggregator>(move(mockScanner), outputMetadata, groupKeyCols, aggExprs);
+
+    hashAggregator->open();
+    size_t n = 0;
+    const size_t expectedNoData = 8;
+    while (hashAggregator->hasMore()) {
+        auto optData = hashAggregator->processNext();
+        if (!optData) {
+            break;
+        }
+
+        ++n;
+    }
+
+    EXPECT_EQ(n, 8);
 }
