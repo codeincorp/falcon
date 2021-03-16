@@ -40,16 +40,6 @@ std::vector<std::string> parseLine(const std::string& line)
     return strs;
 }
 
-std::type_index convertToTypeid(const std::string& typeName)
-{
-    if(types.find(typeName) != types.end()) {
-        return types.find(typeName)->second;
-    }
-    else {
-        return tiVoid;
-    }
-}
-
 /*
  * A good metadata line should look like
  * "field1/type1, field2/type2, field3/type3...."

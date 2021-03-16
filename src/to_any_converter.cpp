@@ -25,7 +25,7 @@ AnyConverterMap anyConverters {
     }),
 };
 
-const std::unordered_map<std::string, std::type_index> types {
+const std::unordered_map<std::string, std::type_index> typeMap {
     {"int", std::type_index(typeid(int))},
     {"bool", std::type_index(typeid(bool))},
     {"void", std::type_index(typeid(void))},
@@ -34,6 +34,16 @@ const std::unordered_map<std::string, std::type_index> types {
     {"string", std::type_index(typeid(std::string))},
     {"double", std::type_index(typeid(double))}
 };
+
+std::type_index convertToTypeid(const std::string& typeName)
+{
+    if(auto it = typeMap.find(typeName); it != typeMap.end()) {
+        return it->second;
+    }
+    else {
+        return tiVoid;
+    }
+}
 
 const std::type_index tiVoid = std::type_index(typeid(void));
 const std::type_index tiBool = std::type_index(typeid(bool));
