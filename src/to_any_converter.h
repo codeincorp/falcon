@@ -78,6 +78,8 @@ inline std::any convertTo(
  */
 extern AnyConverterMap anyConverters;
 
+std::type_index convertToTypeid(const std::string& typeName);
+
 /// Type index for void type.
 extern const std::type_index tiVoid;
 /// Type index for bool type.

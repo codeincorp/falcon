@@ -3,6 +3,7 @@
 #include "metadata.h"
 #include "any_visitor.h"
 #include "csv_file_scanner.h"
+#include "to_any_converter.h"
 
 using namespace std;
 using namespace codein;
@@ -586,6 +587,7 @@ TEST(CsvFileScannerTests, InvalidLinesInFileTest3) {
 TEST(CsvFileScannerTests, ConvertToTypeidTest)
 {
     EXPECT_EQ(convertToTypeid("int"), tiInt);
+    EXPECT_EQ(convertToTypeid("bool"), tiBool);
     EXPECT_EQ(convertToTypeid("double"), tiDouble);
     EXPECT_EQ(convertToTypeid("string"), tiString);
     EXPECT_EQ(convertToTypeid("float"), tiFloat);
