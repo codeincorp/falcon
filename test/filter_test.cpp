@@ -8,8 +8,6 @@
 using namespace std;
 using namespace codein;
 
-bool operator==(const Metadata& lhs, const Metadata& rhs);
-
 struct FilterTests : public ::testing::Test {
     Metadata metadata{
         { "a", tiInt },

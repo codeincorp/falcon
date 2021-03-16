@@ -18,6 +18,7 @@ set(HEADERS
     src/projector.h
     src/expression.h
     src/filter.h
+    src/hash_aggregator.h
 )
 
 set(SOURCES
@@ -27,6 +28,7 @@ set(SOURCES
     src/projector.cpp
     src/expression.cpp
     src/filter.cpp
+    src/hash_aggregator.cpp
 )
 
 add_library(csvqry STATIC ${SOURCES} ${HEADERS})

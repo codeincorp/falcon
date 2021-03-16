@@ -24,6 +24,7 @@ set(TEST_SOURCES
     expression_test.cpp
     filter_test.cpp
     metadata_test.cpp
+    hash_aggregator_test.cpp
 )
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/metadata.txt ${CMAKE_CURRENT_BINARY_DIR})
