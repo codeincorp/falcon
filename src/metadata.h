@@ -56,6 +56,15 @@ public:
     Metadata& operator=(const Metadata&) = default;
     Metadata& operator=(Metadata&&) = default;
 
+    std::pair<bool, std::size_t> find(const std::string& name) const {
+         ensureColToIdxSetup();
+
+        auto i = colToIdx_.find(name);
+        return i == colToIdx_.cend()
+            ? std::pair{false, std::size_t{}}
+            : std::pair{true, i->second};
+    }
+
     const FieldMetaInfo& operator[](std::size_t i) const {
         return fields_[i];
     }
@@ -66,13 +75,11 @@ public:
 
     // Writing back is not allowed and always value is returned.
     std::size_t operator[](const std::string& name) const {
-        ensureColToIdxSetup();
-
-        if (auto i = colToIdx_.find(name); i == colToIdx_.cend()) {
-            throw UnknownName();
+        if (auto [found, i] = find(name); found) {
+            return i;
         }
         else {
-            return i->second;
+            throw UnknownName();
         }
     }
 
