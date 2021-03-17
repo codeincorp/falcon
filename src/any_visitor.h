@@ -28,4 +28,6 @@ bool notAny(const std::any& lhs);
 
 std::any hashAny(const std::any& lhs);
 
+class UnsupportedOperation {};
+
 }
