@@ -39,12 +39,21 @@ TEST_F(HashAggregatorTests, BasicTest)
         {"count", tiUint}
     };
     auto groupKeyCols = vector<string>{"a", "b"};
-    vector<Expression> aggExprs{
-        {
-            .opCode = OpCode::Add,
-            .leafOrChildren = vector<Expression>{
-                {.opCode = OpCode::Ref, .leafOrChildren = std::any("count"s)},
-                {.opCode = OpCode::Const, .leafOrChildren = std::any(1)},
+    vector<AggregationExpression> aggExprs{
+        AggregationExpression{
+            .initExpr = {
+                .opCode = OpCode::Add,
+                .leafOrChildren = vector<Expression>{
+                    {.opCode = OpCode::Ref, .leafOrChildren = std::any("count"s)},
+                    {.opCode = OpCode::Const, .leafOrChildren = std::any(1)},
+                },
+            },
+            .contExpr = {
+                .opCode = OpCode::Add,
+                .leafOrChildren = vector<Expression>{
+                    {.opCode = OpCode::Ref, .leafOrChildren = std::any("count"s)},
+                    {.opCode = OpCode::Const, .leafOrChildren = std::any(1)},
+                }
             }
         },
     };

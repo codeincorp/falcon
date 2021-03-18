@@ -14,6 +14,11 @@
 
 namespace codein {
 
+struct AggregationExpression {
+    Expression initExpr;
+    Expression contExpr;
+};
+
 /**
  * @brief Hash aggregation iterator.
  */
@@ -65,36 +70,14 @@ private:
         std::unique_ptr<Iterator>&& child,
         const Metadata& outputMetadata,
         const std::vector<std::string>& groupKeyCols,
-        const std::vector<Expression>& aggExprs);
+        const std::vector<AggregationExpression>& aggExprs);
 
     struct Hasher {
-        std::size_t operator()(const std::vector<std::any>& groupKeyVals) const
-        {
-            std::size_t h = 0;
-            for (const auto& keyVal: groupKeyVals) {
-                h ^= hashAny(keyVal);
-            }
-
-            return h;
-        }
+        std::size_t operator()(const std::vector<std::any>& groupKeyVals) const;
     };
 
     struct KeyEqual {
-        bool operator()(const std::vector<std::any>& lhs, const std::vector<std::any>& rhs) const
-        {
-            std::size_t n = lhs.size();
-            if (n != rhs.size()) {
-                return false;
-            }
-
-            for (std::size_t i = 0; i < n; ++i) {
-                if (lhs[i] != rhs[i]) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
+        bool operator()(const std::vector<std::any>& lhs, const std::vector<std::any>& rhs) const;
     };
 
     using GroupKeyType = std::vector<std::any>;
@@ -106,7 +89,7 @@ private:
     const Metadata inputMetadata_;
     const Metadata outputMetadata_;
     const std::vector<Expression> groupKeyProjExprs_;
-    const std::vector<Expression> aggExprs_;
+    const std::vector<AggregationExpression> aggExprs_;
     HashStorageType hashStorage_;
     HashStorageType::const_iterator it_;
 };

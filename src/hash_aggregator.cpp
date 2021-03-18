@@ -11,6 +11,32 @@
 
 namespace codein {
 
+std::size_t HashAggregator::Hasher::operator()(const std::vector<std::any>& groupKeyVals) const
+{
+    std::size_t h = 0;
+    for (const auto& keyVal: groupKeyVals) {
+        h ^= hashAny(keyVal);
+    }
+
+    return h;
+}
+
+bool HashAggregator::KeyEqual::operator()(const std::vector<std::any>& lhs, const std::vector<std::any>& rhs) const
+{
+    std::size_t n = lhs.size();
+    if (n != rhs.size()) {
+        return false;
+    }
+
+    for (std::size_t i = 0; i < n; ++i) {
+        if (lhs[i] != rhs[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 std::vector<Expression> HashAggregator::createGroupKeyProjExprs(
     const Metadata& inputMetadata, const std::vector<std::string>& groupKeyCols)
 {
@@ -30,13 +56,13 @@ HashAggregator::HashAggregator(
     std::unique_ptr<Iterator>&& child,
     const Metadata& outputMetadata,
     const std::vector<std::string>& groupKeyCols,
-    const std::vector<Expression>& aggExprs)
+    const std::vector<AggregationExpression>& aggExprs)
     : child_(std::move(child))
     , inputMetadata_(child_->getMetadata())
     , outputMetadata_(outputMetadata)
     , groupKeyProjExprs_(createGroupKeyProjExprs(inputMetadata_, groupKeyCols))
     , aggExprs_(aggExprs)
-    , hashStorage_(1023, Hasher(), KeyEqual())
+    , hashStorage_(1023)
 {}
 
 void HashAggregator::open()
@@ -56,8 +82,16 @@ void HashAggregator::open()
             groupKeyVals.emplace_back(proj.eval(inputMetadata_, optInput.value()));
         }
 
-        if (!hashStorage_.contains(groupKeyVals)) {
-            hashStorage_.emplace(std::move(groupKeyVals), 0);
+        if (auto it = hashStorage_.find(groupKeyVals); it == hashStorage_.cend()) {
+            hashStorage_.emplace(std::move(groupKeyVals), std::vector<std::any>(aggExprs_.size()));
+
+            for (const auto& [initExpr, _] : aggExprs_) {
+                initExpr.eval(inputMetadata_, optInput.value(), hashStorage_);
+            }
+
+        }
+        else {
+            it->second
         }
     }
 

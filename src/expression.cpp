@@ -136,6 +136,8 @@ const std::vector<Evaluator> evaluators{
             return rhs.eval(metadata, data);
         }
     },
+
+    // OpCode::Assign
 };
 
 std::any Expression::eval(const Metadata& metadata, const std::vector<std::any>& data) const {
