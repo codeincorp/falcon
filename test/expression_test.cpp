@@ -727,6 +727,22 @@ TEST(ExpressionTests, GreaterEqualExpressionTest)
 
     EXPECT_TRUE(r.type() == typeid(bool));
     EXPECT_FALSE(any_cast<bool>(r));
+
+    // data: a == true
+    expr = {
+        .opCode = OpCode::Gte,
+        .leafOrChildren = vector<Expression>{
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+            {.opCode = OpCode::Const, .leafOrChildren = std::any(false)},
+        }
+    };
+
+    metadata[0].typeIndex = tiBool;
+    data[0] = true;
+
+    r = expr.eval(metadata, data);
+
+    EXPECT_TRUE(any_cast<bool>(r)); 
 }
 
 TEST(ExpressionTests, AddExpressionTest)
@@ -964,7 +980,7 @@ TEST(ExpressionTests, HashExpressionTest)
     EXPECT_EQ(hval, any_cast<uint64_t>(expr.eval(metadata, data)));
 }
 
-TEST(ExpressionTests, ArithUnsupportedOperationTest)
+TEST(ExpressionTests, UnsupportedOperationTest)
 {
     // a(string) == b(string) - "1"
     Expression expr {
@@ -985,6 +1001,20 @@ TEST(ExpressionTests, ArithUnsupportedOperationTest)
     Metadata metadata { {"a", tiString}, {"b", tiString} };
     vector<any> data {"OTTOGI"s, "OTTOGI"s };
 
+    EXPECT_THROW(expr.eval(metadata, data), UnsupportedOperation);
+
+    EXPECT_THROW(notAny(any(1)), bad_cast);
+
+    expr = {
+        .opCode = OpCode::Neq,
+        .leafOrChildren = vector<Expression> {
+            {.opCode = OpCode::Const, .leafOrChildren = (uint64_t)UINT64_MAX},
+            {.opCode = OpCode::Const, .leafOrChildren = (uint64_t)(UINT64_MAX-1)}
+        }
+    };
+    EXPECT_THROW(expr.eval(metadata, data), UnsupportedOperation);
+
+    expr.opCode = OpCode::Eq;
     EXPECT_THROW(expr.eval(metadata, data), UnsupportedOperation);
 
     // 4.5 % 1.2
