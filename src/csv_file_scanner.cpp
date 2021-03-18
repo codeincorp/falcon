@@ -13,7 +13,6 @@
 
 namespace codein {
 
-// parseLine will trim extra spaces on both sides of each field
 std::vector<std::string> parseLine(const std::string& line)
 {
     int left = 0;
@@ -40,12 +39,6 @@ std::vector<std::string> parseLine(const std::string& line)
     return strs;
 }
 
-/*
- * A good metadata line should look like
- * "field1/type1, field2/type2, field3/type3...."
- * parseLineMetada should handle possible extra spaces on both ends or between
- * otherwise it will throw InvalidMetadata exception
- */
 Metadata parseLineMetadata(const std::string& line)
 {
     std::vector<std::string> fieldsMetadata = parseLine(line);
