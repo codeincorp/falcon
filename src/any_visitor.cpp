@@ -31,7 +31,7 @@ inline bool apply(const AnyBinCompVisitorMap& opMap, const std::any& lhs, const 
 {
     auto ti = std::type_index(lhs.type());
     if (ti != std::type_index(rhs.type())) {
-        return false;
+        throw UnsupportedOperation();
     }
     const auto it = opMap.find(ti);
     if (it == opMap.cend()) {
@@ -229,7 +229,12 @@ toAnyUnaryVisitor(F const &f)
 }
 
 bool notAny(const std::any& lhs) {
-    return !std::any_cast<bool>(lhs);
+    try {
+        return !std::any_cast<bool>(lhs);
+    }
+    catch (const std::bad_any_cast&) {
+        throw UnsupportedOperation();
+    }
 };
 
 using AnyUnaryOpVisitorMap = std::unordered_map<std::type_index, AnyUnaryOp>;

@@ -159,7 +159,7 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
 
         for (size_t i = 0; i < metadata_.size(); ++i) {
             const auto field = convertTo(anyConverters, metadata_[i].typeIndex, fields[i]);
-            if (field == codein::nullany) {
+            if (!field.has_value()) {
                 ++errorLines_;
 
                 checkError();

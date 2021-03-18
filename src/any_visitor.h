@@ -28,6 +28,10 @@ bool notAny(const std::any& lhs);
 
 std::any hashAny(const std::any& lhs);
 
+/**
+ * @brief exception for invalid operation such as discrepant type
+ * between operands, or unsupported types of operand for operator. 
+ */
 class UnsupportedOperation {};
 
 }
