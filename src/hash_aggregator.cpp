@@ -72,7 +72,7 @@ HashAggregator::HashAggregator(
 
 std::vector<std::any> mergeValues(std::vector<std::any>&& inputVals, std::vector<std::any>& aggVals)
 {
-    auto r = inputVals;
+    auto r = std::move(inputVals);
     for (auto& aggVal: aggVals) {
         r.emplace_back(std::move(aggVal));
     }
@@ -97,7 +97,7 @@ void HashAggregator::open()
             groupKeyVals.emplace_back(proj.eval(inputMetadata_, optInput.value()));
         }
 
-        if (auto it = hashStorage_.find(groupKeyVals); it == hashStorage_.cend()) {
+        if (!hashStorage_.contains(groupKeyVals)) {
             hashStorage_.emplace(groupKeyVals, std::vector<std::any>(aggExprs_.size()));
 
             auto inputVals = mergeValues(std::move(optInput.value()), hashStorage_[groupKeyVals]);

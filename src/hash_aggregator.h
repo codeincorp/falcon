@@ -14,6 +14,10 @@
 
 namespace codein {
 
+/**
+ * @brief Expression for aggregation. Composed of an initialization expression
+ * and continuation expression.
+ */
 struct AggregationExpression {
     Expression initExpr;
     Expression contExpr;
@@ -39,11 +43,6 @@ public:
         return it_ != hashStorage_.cend();
     }
 
-    /**
-     * @brief 
-     * 
-     * @return std::optional<std::vector<std::any>> 
-     */
     std::optional<std::vector<std::any>> processNext() override;
 
     void close() override
