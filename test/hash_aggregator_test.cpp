@@ -42,17 +42,14 @@ TEST_F(HashAggregatorTests, BasicTest)
     vector<AggregationExpression> aggExprs{
         AggregationExpression{
             .initExpr = {
-                .opCode = OpCode::Add,
-                .leafOrChildren = vector<Expression>{
-                    {.opCode = OpCode::Ref, .leafOrChildren = std::any("count"s)},
-                    {.opCode = OpCode::Const, .leafOrChildren = std::any(1)},
-                },
+                .opCode = OpCode::Const,
+                .leafOrChildren = std::any(1u),
             },
             .contExpr = {
                 .opCode = OpCode::Add,
                 .leafOrChildren = vector<Expression>{
                     {.opCode = OpCode::Ref, .leafOrChildren = std::any("count"s)},
-                    {.opCode = OpCode::Const, .leafOrChildren = std::any(1)},
+                    {.opCode = OpCode::Const, .leafOrChildren = std::any(1u)},
                 }
             }
         },
@@ -63,7 +60,7 @@ TEST_F(HashAggregatorTests, BasicTest)
 
     hashAggregator->open();
     size_t n = 0;
-    const size_t expectedNoData = 8;
+    const size_t expectedNumData = 8;
     while (hashAggregator->hasMore()) {
         auto optData = hashAggregator->processNext();
         if (!optData) {
@@ -73,5 +70,5 @@ TEST_F(HashAggregatorTests, BasicTest)
         ++n;
     }
 
-    EXPECT_EQ(n, 8);
+    EXPECT_EQ(n, expectedNumData);
 }

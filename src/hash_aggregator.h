@@ -81,12 +81,13 @@ private:
     };
 
     using GroupKeyType = std::vector<std::any>;
-    using HashStorageType = std::unordered_map<GroupKeyType, int, Hasher, KeyEqual>;
+    using GroupValueType = std::vector<std::any>;
+    using HashStorageType = std::unordered_map<GroupKeyType, GroupValueType, Hasher, KeyEqual>;
 
     static std::vector<Expression> createGroupKeyProjExprs(const Metadata&, const std::vector<std::string>&);
 
     std::unique_ptr<Iterator> child_;
-    const Metadata inputMetadata_;
+    Metadata inputMetadata_;
     const Metadata outputMetadata_;
     const std::vector<Expression> groupKeyProjExprs_;
     const std::vector<AggregationExpression> aggExprs_;

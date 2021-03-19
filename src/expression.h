@@ -28,7 +28,6 @@ enum class OpCode {
     Not,
     And,
     Or,
-    Assign,
 };
 
 struct Expression {

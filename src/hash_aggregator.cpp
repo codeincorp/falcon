@@ -63,7 +63,22 @@ HashAggregator::HashAggregator(
     , groupKeyProjExprs_(createGroupKeyProjExprs(inputMetadata_, groupKeyCols))
     , aggExprs_(aggExprs)
     , hashStorage_(1023)
-{}
+{
+    // The intermediate aggregation values are part of input values to aggregation expressions.
+    for (size_t i = groupKeyCols.size(); i < outputMetadata_.size(); ++i) {
+        inputMetadata_.emplace_back(outputMetadata_[i]);
+    }
+}
+
+std::vector<std::any> mergeValues(std::vector<std::any>&& inputVals, std::vector<std::any>& aggVals)
+{
+    auto r = inputVals;
+    for (auto& aggVal: aggVals) {
+        r.emplace_back(std::move(aggVal));
+    }
+
+    return r;
+}
 
 void HashAggregator::open()
 {
@@ -83,15 +98,18 @@ void HashAggregator::open()
         }
 
         if (auto it = hashStorage_.find(groupKeyVals); it == hashStorage_.cend()) {
-            hashStorage_.emplace(std::move(groupKeyVals), std::vector<std::any>(aggExprs_.size()));
+            hashStorage_.emplace(groupKeyVals, std::vector<std::any>(aggExprs_.size()));
 
-            for (const auto& [initExpr, _] : aggExprs_) {
-                initExpr.eval(inputMetadata_, optInput.value(), hashStorage_);
+            auto inputVals = mergeValues(std::move(optInput.value()), hashStorage_[groupKeyVals]);
+            for (size_t i = 0; i < aggExprs_.size(); ++i) {
+                hashStorage_[groupKeyVals][i] = aggExprs_[i].initExpr.eval(inputMetadata_, inputVals);
             }
-
         }
         else {
-            it->second
+            auto inputVals = mergeValues(std::move(optInput.value()), hashStorage_[groupKeyVals]);
+            for (size_t i = 0; i < aggExprs_.size(); ++i) {
+                hashStorage_[groupKeyVals][i] = aggExprs_[i].contExpr.eval(inputMetadata_, inputVals);
+            }
         }
     }
 
@@ -107,7 +125,7 @@ std::optional<std::vector<std::any>> HashAggregator::processNext()
     auto cit = it_++;
     auto nh = hashStorage_.extract(cit);
     
-    return std::move(nh.key());
+    return mergeValues(std::move(nh.key()), nh.mapped());
 }
 
 } // namespace codein;
