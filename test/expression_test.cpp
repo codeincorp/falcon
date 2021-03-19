@@ -6,6 +6,7 @@
 
 #include "expression.h"
 #include "metadata.h"
+#include "any_visitor.h"
 
 using namespace std;
 using namespace codein;
@@ -278,7 +279,6 @@ TEST(ExpressionTests, NotEqualExpressionTest)
     EXPECT_FALSE(any_cast<bool>(r));
 }
 
-
 TEST(ExpressionTests, LessExpressionTest)
 {
     // expression: a < 3
@@ -368,6 +368,40 @@ TEST(ExpressionTests, LessExpressionTest)
 
     EXPECT_TRUE(r.type() == typeid(bool));
     EXPECT_FALSE(any_cast<bool>(r));
+
+    // data: bool
+    metadata[0].typeIndex = tiBool;
+    expr = {
+        .opCode = OpCode::Lt,
+        .leafOrChildren = vector<Expression>{
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+            {.opCode = OpCode::Const, .leafOrChildren = std::any(false)},
+        }
+    };
+
+    data[0] = false;
+    r = expr.eval(metadata, data);
+    EXPECT_FALSE(any_cast<bool>(r)); 
+
+    data[0] = true;
+    r = expr.eval(metadata, data);
+    EXPECT_FALSE(any_cast<bool>(r)); 
+
+    expr = {
+        .opCode = OpCode::Lt,
+        .leafOrChildren = vector<Expression>{
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+            {.opCode = OpCode::Const, .leafOrChildren = std::any(true)},
+        }
+    };
+
+    data[0] = false;
+    r = expr.eval(metadata, data);
+    EXPECT_TRUE(any_cast<bool>(r)); 
+
+    data[0] = true;
+    r = expr.eval(metadata, data);
+    EXPECT_FALSE(any_cast<bool>(r)); 
 }
 
 TEST(ExpressionTests, LessEqualExpressionTest)
@@ -489,6 +523,40 @@ TEST(ExpressionTests, LessEqualExpressionTest)
 
     EXPECT_TRUE(r.type() == typeid(bool));
     EXPECT_FALSE(any_cast<bool>(r));
+
+    //data: a = bool
+    metadata[0].typeIndex = tiBool;
+    expr = {
+        .opCode = OpCode::Lte,
+        .leafOrChildren = vector<Expression>{
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+            {.opCode = OpCode::Const, .leafOrChildren = std::any(false)},
+        }
+    };
+
+    data[0] = false;
+    r = expr.eval(metadata, data);
+    EXPECT_TRUE(any_cast<bool>(r)); 
+
+    data[0] = true;
+    r = expr.eval(metadata, data);
+    EXPECT_FALSE(any_cast<bool>(r)); 
+
+    expr = {
+        .opCode = OpCode::Lte,
+        .leafOrChildren = vector<Expression>{
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+            {.opCode = OpCode::Const, .leafOrChildren = std::any(true)},
+        }
+    };
+
+    data[0] = false;
+    r = expr.eval(metadata, data);
+    EXPECT_TRUE(any_cast<bool>(r)); 
+
+    data[0] = true;
+    r = expr.eval(metadata, data);
+    EXPECT_TRUE(any_cast<bool>(r));  
 }
 
 TEST(ExpressionTests, GreaterExpressionTest)
@@ -577,6 +645,33 @@ TEST(ExpressionTests, GreaterExpressionTest)
     r = expr.eval(metadata, data);
 
     EXPECT_TRUE(r.type() == typeid(bool));
+    EXPECT_FALSE(any_cast<bool>(r));
+
+    // true > false
+    expr = {
+        .opCode = OpCode::Gt,
+        .leafOrChildren = vector<Expression> {
+            {.opCode = OpCode::Const, .leafOrChildren = any(true)},
+            {.opCode = OpCode::Const, .leafOrChildren = any(false)}
+        }
+    };
+
+    r = expr.eval(metadata, data);
+    EXPECT_TRUE(any_cast<bool>(r));
+
+    // a > true
+    expr = {
+        .opCode = OpCode::Gt,
+        .leafOrChildren = vector<Expression> {
+            {.opCode = OpCode::Ref, .leafOrChildren = any("a"s)},
+            {.opCode = OpCode::Const, .leafOrChildren = any(true)}
+        }
+    };
+    metadata = {{"a", tiBool}};
+    data[0] = true;
+
+
+    r = expr.eval(metadata, data);
     EXPECT_FALSE(any_cast<bool>(r));
 }
 
@@ -701,6 +796,34 @@ TEST(ExpressionTests, GreaterEqualExpressionTest)
 
     EXPECT_TRUE(r.type() == typeid(bool));
     EXPECT_FALSE(any_cast<bool>(r));
+
+    // data: a == true
+    expr = {
+        .opCode = OpCode::Gte,
+        .leafOrChildren = vector<Expression>{
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+            {.opCode = OpCode::Const, .leafOrChildren = std::any(false)},
+        }
+    };
+
+    metadata[0].typeIndex = tiBool;
+    data[0] = true;
+
+    r = expr.eval(metadata, data);
+
+    EXPECT_TRUE(any_cast<bool>(r)); 
+
+    expr = {
+        .opCode = OpCode::Gte,
+        .leafOrChildren = vector<Expression>{
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+            {.opCode = OpCode::Const, .leafOrChildren = std::any(true)},
+        }
+    };
+
+    r = expr.eval(metadata, data);
+
+    EXPECT_TRUE(any_cast<bool>(r)); 
 }
 
 TEST(ExpressionTests, AddExpressionTest)
@@ -936,4 +1059,103 @@ TEST(ExpressionTests, HashExpressionTest)
     };
 
     EXPECT_EQ(hval, any_cast<uint64_t>(expr.eval(metadata, data)));
+}
+
+TEST(ExpressionTests, UnsupportedOperationTest)
+{
+    // a(string) == b(string) - "1"
+    Expression expr {
+        .opCode = OpCode::Eq,
+        .leafOrChildren = vector<Expression>{
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+            {
+                .opCode = OpCode::Sub, 
+                .leafOrChildren = vector<Expression>{
+                    {.opCode = OpCode::Ref, .leafOrChildren = std::any("b"s)},
+                    {.opCode = OpCode::Const, .leafOrChildren = std::any("1"s)},
+                }
+            },
+            
+        }
+    };
+
+    Metadata metadata { {"a", tiString}, {"b", tiString} };
+    vector<any> data {"OTTOGI"s, "OTTOGI"s };
+
+    EXPECT_THROW(expr.eval(metadata, data), UnsupportedOperation);
+
+    EXPECT_THROW(notAny(any(1)), UnsupportedOperation);
+
+    // UINT64 != UINT64
+    expr = {
+        .opCode = OpCode::Neq,
+        .leafOrChildren = vector<Expression> {
+            {.opCode = OpCode::Const, .leafOrChildren = (uint64_t)UINT64_MAX},
+            {.opCode = OpCode::Const, .leafOrChildren = (uint64_t)(UINT64_MAX-1)}
+        }
+    };
+    EXPECT_THROW(expr.eval(metadata, data), UnsupportedOperation);
+    // UINT64 < UINT64
+    expr.opCode = OpCode::Lt;
+    EXPECT_THROW(expr.eval(metadata, data), UnsupportedOperation);
+    // UINT64 <= UINT64
+    expr.opCode = OpCode::Lte;
+    EXPECT_THROW(expr.eval(metadata, data), UnsupportedOperation);
+
+    // UINT64 > UINT64
+    expr.opCode = OpCode::Gt;
+    EXPECT_THROW(expr.eval(metadata,data), UnsupportedOperation);
+
+    // UINT64 >= UINT64
+    expr.opCode = OpCode::Gte;
+    EXPECT_THROW(expr.eval(metadata,data), UnsupportedOperation);
+
+    // 4.5 % 1.2
+    expr = {
+        .opCode = OpCode::Mod,
+        .leafOrChildren = vector<Expression> {
+            {.opCode = OpCode::Const, .leafOrChildren = any(4.5)},
+            {.opCode = OpCode::Const, .leafOrChildren = any(1.2)}
+        }
+    };
+    EXPECT_THROW(expr.eval(metadata, data), UnsupportedOperation);
+
+    // "45" / "15"
+    expr = {
+        .opCode = OpCode::Div,
+        .leafOrChildren = vector<Expression> {
+            {.opCode = OpCode::Const, .leafOrChildren = any("45"s)},
+            {.opCode = OpCode::Const, .leafOrChildren = any("15"s)}
+        }
+    };
+    EXPECT_THROW(expr.eval(metadata,data), UnsupportedOperation);
+
+    expr.opCode = OpCode::Mult;
+    EXPECT_THROW(expr.eval(metadata,data), UnsupportedOperation);
+
+    expr.opCode = OpCode::Sub;
+    EXPECT_THROW(expr.eval(metadata,data), UnsupportedOperation);
+
+    expr.opCode = OpCode::Mod;
+    EXPECT_THROW(expr.eval(metadata,data), UnsupportedOperation);
+
+    // 4 + 3.4f
+    expr = {
+        .opCode = OpCode::Add,
+        .leafOrChildren = vector<Expression> {
+            {.opCode = OpCode::Const, .leafOrChildren = any(4)},
+            {.opCode = OpCode::Const, .leafOrChildren = any(3.4f)}
+        }
+    };
+    EXPECT_THROW(expr.eval(metadata,data), UnsupportedOperation);
+
+    // true + false
+    expr = {
+        .opCode = OpCode::Add,
+        .leafOrChildren = vector<Expression> {
+            {.opCode = OpCode::Const, .leafOrChildren = any(true)},
+            {.opCode = OpCode::Const, .leafOrChildren = any(false)}
+        }
+    }; 
+    EXPECT_THROW(expr.eval(metadata,data), UnsupportedOperation);
 }

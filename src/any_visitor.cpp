@@ -31,10 +31,12 @@ inline bool apply(const AnyBinCompVisitorMap& opMap, const std::any& lhs, const 
 {
     auto ti = std::type_index(lhs.type());
     if (ti != std::type_index(rhs.type())) {
-        return false;
+        throw UnsupportedOperation();
     }
     const auto it = opMap.find(ti);
-    assert(it != opMap.cend());
+    if (it == opMap.cend()) {
+        throw UnsupportedOperation();
+    }
 
     return it->second(lhs, rhs);
 }
@@ -91,6 +93,7 @@ bool operator<=(const std::any& lhs, const std::any& rhs)
 }
 
 AnyBinCompVisitorMap anyGtVisitors{
+    toAnyBinCompVisitor<bool>(std::greater<bool>()),
     toAnyBinCompVisitor<int>(std::greater<int>()),
     toAnyBinCompVisitor<unsigned>(std::greater<unsigned>()),
     toAnyBinCompVisitor<float>(std::greater<float>()),
@@ -104,6 +107,7 @@ bool operator>(const std::any& lhs, const std::any& rhs)
 }
 
 AnyBinCompVisitorMap anyGteVisitors{
+    toAnyBinCompVisitor<bool>(std::greater_equal<bool>()),
     toAnyBinCompVisitor<int>(std::greater_equal<int>()),
     toAnyBinCompVisitor<unsigned>(std::greater_equal<unsigned>()),
     toAnyBinCompVisitor<float>(std::greater_equal<float>()),
@@ -138,11 +142,13 @@ inline std::any apply(const AnyBinArithOpVisitorMap& opMap, const std::any& lhs,
 {
     auto ti = std::type_index(lhs.type());
     if (ti != std::type_index(rhs.type())) {
-        return std::any();
+        throw UnsupportedOperation();
     }
 
     const auto it = opMap.find(ti);
-    assert(it != opMap.cend());
+    if (it == opMap.cend()) {
+        throw UnsupportedOperation();
+    }
 
     return it->second(lhs, rhs);
 }
@@ -223,7 +229,12 @@ toAnyUnaryVisitor(F const &f)
 }
 
 bool notAny(const std::any& lhs) {
-    return !std::any_cast<bool>(lhs);
+    try {
+        return !std::any_cast<bool>(lhs);
+    }
+    catch (const std::bad_any_cast&) {
+        throw UnsupportedOperation();
+    }
 };
 
 using AnyUnaryOpVisitorMap = std::unordered_map<std::type_index, AnyUnaryOp>;
@@ -232,7 +243,9 @@ inline std::any apply(const AnyUnaryOpVisitorMap& opMap, const std::any& lhs)
 {
     auto ti = std::type_index(lhs.type());
     const auto it = opMap.find(ti);
-    assert(it != opMap.cend());
+    if (it == opMap.cend()) {
+        throw UnsupportedOperation();
+    }
 
     return it->second(lhs);
 }
