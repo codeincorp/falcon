@@ -137,15 +137,7 @@ const std::vector<Evaluator> evaluators{
         }
     },
 
-    // OpCode::Hash
-    [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
-        uint64_t r = 0;
-        for (const auto& child: n.children()) {
-            r ^= any_cast<uint64_t>(hashAny(child.eval(metadata, data)));
-        }
-
-        return std::any(r);
-    },
+    // OpCode::Assign
 };
 
 std::any Expression::eval(const Metadata& metadata, const std::vector<std::any>& data) const {
