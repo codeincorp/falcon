@@ -14,23 +14,23 @@
 namespace codein {
 
 /**
- * @brief separate fields in a line, trimming extra spaces on both sides of each field.
+ * @brief Splits fields in a line, trimming extra spaces on both sides of each field.
  * 
- * @param line 
+ * @param line: Input line in which each field is supposed to be separated by comma.
  * @return vector<string> containing each field. 
  */
 std::vector<std::string> parseLine(const std::string& line);
 
 /**
- * @brief converts string typeName into corresponding type_index. 
+ * @brief Converts string typeName into corresponding type_index. 
  * 
- * @param typeName
+ * @param typeName: type name in string
  * @return type_index of typeName if the type is supported. otherwise, return type_index of void. 
  */
 std::type_index convertToTypeid(const std::string& typeName);
 
 /** 
- * @brief reads a string and convert it into metadata.
+ * @brief Reads a string and convert it into metadata.
  * 
  * @param line: contains fields of fieldInfo.
  * @return Metadata for fields in csv file if formatted correctly. A good metadata line should look like
@@ -67,8 +67,8 @@ public:
     }
 
     /** 
-     * @brief processes a next valid line that passes the filter test.
-     * @return vector<any> containing data in a next valid line. Otherwise, return nullopt. 
+     * @brief Processes a next valid line that passes the filter test.
+     * @returns converted data as vector inside optional. Otherwise, returns nullopt.
      */
     std::optional<std::vector<std::any>> processNext() override;
 
@@ -91,10 +91,10 @@ public:
 
 private:
     /** 
-     * @brief Constructs a new Csv File Scanner object to read lines in a csv file.
+     * @brief Constructs a new Csv File Scanner object to read lines in a CSV file.
      * 
-     * @param metadataFileName: name of the file that contains metadata about csv file. 
-     * @param dataFileName: name of the csv file that this  CsvFileScanner will read. 
+     * @param metadataFileName: name of the file that contains metadata about CSV file. 
+     * @param dataFileName: name of the CSV file that this CsvFileScanner will read. 
      * @param expr: Expression to filter desired lines. if not specified, passes every line.
      */
     CsvFileScanner(const std::string& metadataFileName,
@@ -103,14 +103,14 @@ private:
     // helper function for processNext to check if there are too many error lines.
     void checkError();
 
-    // const threshold to decide if there are too many error lines.
+    // threshold to decide if there are too many error lines.
     const unsigned int kThreshold = 30;
 
-    // metadata about the csv file.
+    // metadata about the CSV file.
     Metadata metadata_;
-    // name of the csv file name.
+    // name of the CSV file name.
     std::string dataFileName_;
-    // file stream to open and read csv file and metadata file.
+    // file stream to open and read CSV file and metadata file.
     mutable std::fstream dfs_;
     // expression based on which this object will filter lines.
     const Expression filterExpr_;
@@ -121,7 +121,7 @@ private:
 };
 
 /**
- * @brief Invalid Metadata exception for when metadata file contains an non-existent type name. 
+ * @brief Invalid Metadata exception for when metadata file contains a non-existent type name. 
  */
 class InvalidMetadata {};
 
@@ -132,7 +132,7 @@ class NonExistentFile {};
 
 /**
  * @brief exception for when there are too many error lines and thus metadata can be considered invalid
- * for csv file. 
+ * for CSV file. 
  */
 class WrongMetadata {};
 
