@@ -1,6 +1,10 @@
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <any>
 #include <memory>
+#include <numeric>
+#include <unordered_map>
+#include <utility>
 
 #include "iterator.h"
 #include "hash_aggregator.h"
@@ -9,30 +13,69 @@
 using namespace std;
 using namespace codein;
 
-struct HashAggregatorTests : public ::testing::Test {
-    Metadata metadata{
-        { "a", tiInt },
-        { "b", tiString },
-        { "c", tiDouble },
-    };
+namespace std {
 
-    vector<string> lines{
-        "1,A,3.14",
-        "1,A,8.82",
-        "1,A,100.23",
-        "1,A,-19.3",            // group #1
-        "1,B,2.4",
-        "1,B,-1.8",             // group #2
-        "2,C,4.0",
-        "2,C,-3.0",
-        "2,C,9.1",              // group #3
-        "2,A,38.9",             // group #4
-        "3,C,-3.9",
-        "3,C,3.7",              // group #5
-        "3,E,10.9",             // group #6
-        "3,D,1.2",              // group #7
-    };
+using KeyType = pair<int, string>;
+
+template <>
+struct hash<KeyType> {
+    size_t operator()(const KeyType& key) const
+    {
+        return hash<int>()(key.first) ^ hash<string>()(key.second);
+    }
 };
+
+}
+
+struct HashAggregatorTests : public ::testing::Test {
+    static Metadata metadata;
+    static vector<string> lines;
+    static unordered_multimap<KeyType, double> expectedDataMap;
+
+    static void SetUpTestSuite()
+    {
+        metadata = {
+            { "a", tiInt },
+            { "b", tiString },
+            { "c", tiDouble },
+        };
+
+        lines = {
+            "1,A,3.14",
+            "1,A,8.82",
+            "1,A,100.23",
+            "1,A,-19.3",            // group #1
+            "1,B,2.4",
+            "1,B,-1.8",             // group #2
+            "2,C,4.0",
+            "2,C,-3.0",
+            "2,C,9.1",              // group #3
+            "2,A,38.9",             // group #4
+            "3,C,-3.9",
+            "3,C,3.7",              // group #5
+            "3,E,10.9",             // group #6
+            "3,D,1.2",              // group #7
+        };
+
+        auto mockScanner = makeIterator<MockScanner>(metadata, lines);
+        mockScanner->open();
+        while (mockScanner->hasMore()) {
+            auto optData = mockScanner->processNext();
+            if (!optData) {
+                break;
+            }
+
+            auto a = any_cast<int>((*optData)[0]);
+            auto b = any_cast<string>((*optData)[1]);
+            auto c = any_cast<double>((*optData)[2]);
+            expectedDataMap.emplace(make_pair(a, b), c);
+        }
+    }
+};
+
+Metadata HashAggregatorTests::metadata;
+vector<string> HashAggregatorTests::lines;
+unordered_multimap<KeyType, double> HashAggregatorTests::expectedDataMap;
 
 TEST_F(HashAggregatorTests, BasicTest)
 {
@@ -78,30 +121,7 @@ TEST_F(HashAggregatorTests, BasicTest)
         auto b = any_cast<string>((*optData)[1]);
         auto count = any_cast<unsigned>((*optData)[2]);
 
-        if (a == 1 && b == "A"s) {
-            EXPECT_EQ(count, 4);
-        }
-        else if (a == 1 && b == "B"s) {
-            EXPECT_EQ(count, 2);
-        }
-        else if (a == 2 && b == "C"s) {
-            EXPECT_EQ(count, 3);
-        }
-        else if (a == 2 && b == "A"s) {
-            EXPECT_EQ(count, 1);
-        }
-        else if (a == 3 && b == "C"s) {
-            EXPECT_EQ(count, 2);
-        }
-        else if (a == 3 && b == "E"s) {
-            EXPECT_EQ(count, 1);
-        }
-        else if (a == 3 && b == "D"s) {
-            EXPECT_EQ(count, 1);
-        }
-        else {
-            EXPECT_TRUE(false) << "must not reach here";
-        }
+        EXPECT_EQ(count, expectedDataMap.count(make_pair(a, b)));
 
         ++n;
     }
@@ -160,30 +180,11 @@ TEST_F(HashAggregatorTests, MaxTest)
         auto b = any_cast<string>((*optData)[1]);
         auto maxVal = any_cast<double>((*optData)[2]);
 
-        if (a == 1 && b == "A"s) {
-            EXPECT_EQ(maxVal, 100.23);
-        }
-        else if (a == 1 && b == "B"s) {
-            EXPECT_EQ(maxVal, 2.4);
-        }
-        else if (a == 2 && b == "C"s) {
-            EXPECT_EQ(maxVal, 9.1);
-        }
-        else if (a == 2 && b == "A"s) {
-            EXPECT_EQ(maxVal, 38.9);
-        }
-        else if (a == 3 && b == "C"s) {
-            EXPECT_EQ(maxVal, 3.7);
-        }
-        else if (a == 3 && b == "E"s) {
-            EXPECT_EQ(maxVal, 10.9);
-        }
-        else if (a == 3 && b == "D"s) {
-            EXPECT_EQ(maxVal, 1.2);
-        }
-        else {
-            EXPECT_TRUE(false) << "must not reach here";
-        }
+        auto range = expectedDataMap.equal_range(make_pair(a, b));
+        auto expectedMaxElem = max_element(range.first, range.second, [](const auto& lhs, const auto& rhs) {
+            return lhs.second < rhs.second;
+        });
+        EXPECT_EQ(maxVal, expectedMaxElem->second);
 
         ++n;
     }
@@ -242,30 +243,11 @@ TEST_F(HashAggregatorTests, MinTest)
         auto b = any_cast<string>((*optData)[1]);
         auto minVal = any_cast<double>((*optData)[2]);
 
-        if (a == 1 && b == "A"s) {
-            EXPECT_EQ(minVal, -19.3);
-        }
-        else if (a == 1 && b == "B"s) {
-            EXPECT_EQ(minVal, -1.8);
-        }
-        else if (a == 2 && b == "C"s) {
-            EXPECT_EQ(minVal, -3.0);
-        }
-        else if (a == 2 && b == "A"s) {
-            EXPECT_EQ(minVal, 38.9);
-        }
-        else if (a == 3 && b == "C"s) {
-            EXPECT_EQ(minVal, -3.9);
-        }
-        else if (a == 3 && b == "E"s) {
-            EXPECT_EQ(minVal, 10.9);
-        }
-        else if (a == 3 && b == "D"s) {
-            EXPECT_EQ(minVal, 1.2);
-        }
-        else {
-            EXPECT_TRUE(false) << "must not reach here";
-        }
+        auto range = expectedDataMap.equal_range(make_pair(a, b));
+        auto expectedMinElem = min_element(range.first, range.second, [](const auto& lhs, const auto& rhs) {
+            return lhs.second < rhs.second;
+        });
+        EXPECT_EQ(minVal, expectedMinElem->second);
 
         ++n;
     }
@@ -317,31 +299,11 @@ TEST_F(HashAggregatorTests, SumTest)
         auto b = any_cast<string>((*optData)[1]);
         auto sumVal = any_cast<double>((*optData)[2]);
 
-        if (a == 1 && b == "A"s) {
-            EXPECT_DOUBLE_EQ(sumVal, 92.89);
-        }
-        else if (a == 1 && b == "B"s) {
-            EXPECT_DOUBLE_EQ(sumVal, 0.6);
-        }
-        else if (a == 2 && b == "C"s) {
-            EXPECT_DOUBLE_EQ(sumVal, 10.1);
-        }
-        else if (a == 2 && b == "A"s) {
-            EXPECT_DOUBLE_EQ(sumVal, 38.9);
-        }
-        else if (a == 3 && b == "C"s) {
-            // TODO: #98 Investigate why DOUBLE_EQ(..., -0.2) fails
-            EXPECT_FLOAT_EQ(sumVal, -0.2);
-        }
-        else if (a == 3 && b == "E"s) {
-            EXPECT_DOUBLE_EQ(sumVal, 10.9);
-        }
-        else if (a == 3 && b == "D"s) {
-            EXPECT_DOUBLE_EQ(sumVal, 1.2);
-        }
-        else {
-            EXPECT_TRUE(false) << "must not reach here";
-        }
+        auto range = expectedDataMap.equal_range(make_pair(a, b));
+        auto expectedSum = accumulate(range.first, range.second, 0.0, [](auto lhs, const auto& rhs) {
+            return lhs + rhs.second;
+        });
+        EXPECT_EQ(sumVal, expectedSum);
 
         ++n;
     }
