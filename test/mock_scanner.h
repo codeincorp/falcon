@@ -38,7 +38,7 @@ public:
 
         std::vector<std::any> r;
         for (size_t i = 0; i < metadata_.size(); ++i) {
-            r.emplace_back(codein::convertTo(codein::anyConverters, metadata_[i].typeIndex, fields[i]));
+            r.emplace_back(codein::convertTo(metadata_[i].typeIndex, fields[i]));
         }
 
         return r;

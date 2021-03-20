@@ -330,9 +330,7 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
         fields = parseLine(expectedLines[i]);
 
         for (size_t k = 0; k < expectedMetadata1.size(); ++k) {
-            expectedFields[i].emplace_back(convertTo(
-                anyConverters, expectedMetadata1[k].typeIndex, fields[k]
-                )
+            expectedFields[i].emplace_back(convertTo(expectedMetadata1[k].typeIndex, fields[k])
             );
         }
     }
