@@ -1067,4 +1067,49 @@ TEST(ExpressionTests, UnsupportedOperationTest)
         }
     }; 
     EXPECT_THROW(expr.eval(metadata,data), UnsupportedOperation);
+
+    expr = {
+        .opCode = OpCode::Ref,
+        .leafOrChildren = any(true),
+    };
+    EXPECT_THROW(expr(metadata,data), NameExpected);
+}
+
+TEST(ExpressionTests, CondExpressionTest)
+{
+    // a > 10 ? a : 10
+    Expression expr{
+        .opCode = OpCode::Cond,
+        .leafOrChildren = vector<Expression>{
+            {
+                .opCode = OpCode::Gt, 
+                .leafOrChildren = vector<Expression>{
+                    {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+                    {.opCode = OpCode::Const, .leafOrChildren = std::any(10)},
+                }
+            },
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+            {.opCode = OpCode::Const, .leafOrChildren = std::any(10)},
+        }
+    };
+
+    // data: a == 1
+    Metadata metadata{{"a", tiInt}};
+    vector<any> data {1};
+    EXPECT_EQ(any_cast<int>(expr(metadata, data)), 10);
+
+    // data: a == 20
+    data = {20};
+    EXPECT_EQ(any_cast<int>(expr(metadata, data)), 20);
+
+    // a < 10 ? a : 10
+    expr.first().opCode = OpCode::Lt;
+
+    // data: a == 5
+    data = {5};
+    EXPECT_EQ(any_cast<int>(expr(metadata, data)), 5);
+
+    // data: a == 15
+    data = {15};
+    EXPECT_EQ(any_cast<int>(expr(metadata, data)), 10);
 }

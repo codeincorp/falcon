@@ -32,8 +32,13 @@ const std::vector<Evaluator> evaluators{
 
     // OpCode::Ref
     [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
-        const auto& name = std::any_cast<std::string>(n.leaf());
-        return data[metadata[name]];
+        try {
+            const auto& name = std::any_cast<std::string>(n.leaf());
+            return data[metadata[name]];
+        }
+        catch (const std::bad_any_cast&) {
+            throw NameExpected();
+        }
     },
 
     // OpCode::Const
@@ -137,7 +142,15 @@ const std::vector<Evaluator> evaluators{
         }
     },
 
-    // OpCode::Assign
+    // OpCode::Cond
+    [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
+        if (auto cond = n.first(); std::any_cast<bool>(cond(metadata, data))) {
+            return n.children()[1](metadata, data);
+        }
+        else {
+            return n.children()[2](metadata, data);
+        }
+    },
 };
 
 std::any Expression::eval(const Metadata& metadata, const std::vector<std::any>& data) const {

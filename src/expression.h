@@ -10,6 +10,12 @@
 
 namespace codein {
 
+/**
+ * @brief Exception for when identifier name expected for OpCode::Ref but
+ * identifier does not exist.
+ */
+class NameExpected {};
+
 enum class OpCode {
     Noop,
     Ref,
@@ -28,6 +34,7 @@ enum class OpCode {
     Not,
     And,
     Or,
+    Cond,
 };
 
 struct Expression {
@@ -86,6 +93,10 @@ struct Expression {
     }
 
     std::any eval(const Metadata& metadata, const std::vector<std::any>& data) const;
+    std::any operator()(const Metadata& metadata, const std::vector<std::any>& data) const
+    {
+        return eval(metadata, data);
+    }
 
     OpCode opCode;
     std::variant<std::any, std::vector<Expression>> leafOrChildren;
