@@ -8,6 +8,216 @@
 using namespace std;
 using namespace codein;
 
+void projectionsRefac (const vector<vector<any>>& expectedFields, const unique_ptr<Iterator>&& scanner) {
+    scanner->open();
+    const size_t kExpectedPassLines = expectedFields.size();
+    size_t i = 0;
+
+    while (scanner->hasMore()) {
+        auto row = scanner->processNext();
+
+        if (row == std::nullopt) {
+            break;
+        }
+
+        auto val = row.value();
+        for (size_t k = 0; k < val.size(); ++k) {
+            EXPECT_TRUE(val[k] == expectedFields[i][k]);
+        }
+
+        ++i;
+    }
+
+    EXPECT_EQ(i, kExpectedPassLines);
+}
+
+TEST(CsvFileScannerTests, projectionsTest)
+{
+    vector<vector<any>> expectedFields {
+        {1u, 3},
+        {2u, 2},
+        {2u, 3},
+        {1u, 1},
+        {2u, 1},
+        {2u, 1},
+        {1u, 3},
+        {2u, 3},
+        {1u, 3},
+        {1u,3},
+        {2u,3},
+        {2u,5},
+        {2u,4},
+    };
+
+    vector<Expression> projections {
+        {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = std::any("c"s)},
+    };
+
+    projectionsRefac(expectedFields, 
+        move(makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", kAlwaysTrue, projections)
+        )
+    );
+}
+
+TEST(CsvFileScannerTests, projectionsTest2) {
+    vector<vector<any>> expectedFields {
+        {1u, 3, "OTTOGI"s},
+        {2u, 2, "Nongshim"s},
+        {2u, 3, "Paldo"s},
+        {1u, 1, "Samyang"s},
+        {2u, 1, "Paldo"s},
+        {2u, 1, "Nongshim"s},
+        {1u, 3, "Paldo"s},
+        {2u, 3, "Nongshim"s},
+        {1u, 3, "Samyang"s},
+        {1u, 3, "Samyang"s},
+        {2u, 3, "OTTOGI"s},
+        {2u, 5, "OTTOGI"s},
+        {2u, 4, "Samyang"s},
+    };
+
+    vector<Expression> projections {
+        {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = std::any("c"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = std::any("d"s)},
+    };
+
+    projectionsRefac(expectedFields, 
+        move(makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", kAlwaysTrue, projections)
+        )
+    );
+    
+    expectedFields = {
+        {2u, 2, "Nongshim"s},
+        {2u, 3, "Paldo"s},
+        {2u, 1, "Paldo"s},
+        {2u, 1, "Nongshim"s},
+        {2u, 3, "Nongshim"s},
+        {2u, 3, "OTTOGI"s},
+        {2u, 5, "OTTOGI"s},
+        {2u, 4, "Samyang"s},
+    };
+
+    // a == 2u
+    Expression filterExpr {
+        .opCode = OpCode::Eq,
+        .leafOrChildren = vector<Expression>{
+            {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+            {.opCode = OpCode::Const, .leafOrChildren = std::any(2u)},
+        }
+    };
+
+    projectionsRefac(expectedFields, 
+        move(makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr, projections)
+        )
+    );
+}
+
+TEST(CsvFileScannerTests, projectionsTest3) 
+{
+    // d == OTTOGI || e == Nongshim
+    Expression filterExpr {
+        .opCode = OpCode::Or, 
+        .leafOrChildren = vector<Expression> {
+            // d == OTTOGI
+            {
+                .opCode = OpCode::Eq, 
+                .leafOrChildren = vector<Expression> {
+                    {.opCode = OpCode::Ref, .leafOrChildren = any("d"s)},
+                    {.opCode = OpCode::Const, .leafOrChildren = any("OTTOGI"s)}
+                }
+            },
+            // e == Nongshim
+            {
+                .opCode = OpCode::Eq, 
+                .leafOrChildren = vector<Expression> {
+                    {.opCode = OpCode::Ref, .leafOrChildren = any("e"s)},
+                    {.opCode = OpCode::Const, .leafOrChildren = any("Nongshim"s)}
+                }
+            },
+        }
+    };
+
+    vector<Expression> projections {
+        //  b - c
+        {
+            .opCode = OpCode::Sub, 
+            .leafOrChildren = vector<Expression> {
+                {.opCode = OpCode::Ref, .leafOrChildren = any("b"s)},
+                {.opCode = OpCode::Ref, .leafOrChildren = any("c"s)}
+            }
+        },
+        // d
+        {.opCode = OpCode::Ref, .leafOrChildren = any("d"s)},
+        // b >= 10
+        {
+            .opCode= OpCode::Gte, 
+            .leafOrChildren = vector<Expression> {
+                {.opCode = OpCode::Ref, .leafOrChildren = any("b"s)},
+                {.opCode = OpCode::Const, .leafOrChildren = any(10)}
+            }
+        }
+    };
+
+    vector<vector<any>> expectedFields {
+        {6, "OTTOGI"s, false},
+        {5, "Nongshim"s, false},
+        {2, "Nongshim"s, false},
+        {38, "Nongshim"s, true},
+        {5, "OTTOGI"s, false},
+        {5, "OTTOGI"s, true},
+    };
+
+    projectionsRefac(expectedFields, 
+        move(makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr, projections)
+        )
+    );
+}
+
+TEST(CsvFileScannerTests, unKnownProjectionTest)
+{
+    // :)
+    vector<Expression> projections {
+        {.opCode = OpCode::Ref, .leafOrChildren = any(":)"s)},
+        {
+            // a + 10u
+            .opCode = OpCode::Add, 
+            .leafOrChildren = vector<Expression> {
+                {.opCode = OpCode::Ref, .leafOrChildren = any("a"s)},
+                {.opCode = OpCode::Const, .leafOrChildren = any(10u)}
+            }
+        }
+    };
+
+    vector<vector<any>> expectedFields {};
+
+    auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", kAlwaysTrue, projections);
+    scanner->open();
+        
+    EXPECT_THROW(scanner->processNext(), UnknownName);
+}
+
+TEST(CsvFileScannerTests, UnsupportedOperationProjectionsTest)
+{
+    vector<Expression> projections {
+        {.opCode = OpCode::Ref, .leafOrChildren = any("a"s)},
+        {
+            // d(string) + c(int)
+            .opCode = OpCode::Add, 
+            .leafOrChildren = vector<Expression> {
+                {.opCode = OpCode::Ref, .leafOrChildren = any("d"s)},
+                {.opCode = OpCode::Ref, .leafOrChildren = any("c"s)}
+            }
+        }
+    };
+
+    auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", kAlwaysTrue, projections);
+    scanner->open();
+
+    EXPECT_THROW(scanner->processNext(), UnsupportedOperation);
+}
+
 TEST(CsvFileScannerTests, filterTest) 
 {
     // a == 2u

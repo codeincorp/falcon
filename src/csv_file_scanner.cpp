@@ -76,16 +76,7 @@ Metadata parseLineMetadata(const std::string& line)
     return reVec;
 }
 
-CsvFileScanner::CsvFileScanner(
-    const std::string& metadataFileName,
-    const std::string& dataFileName,
-    const Expression& filterExpr)
-    : metadata_()
-    , dataFileName_(dataFileName)
-    , dfs_()
-    , filterExpr_(filterExpr)
-    , readLines_(0)
-    , errorLines_(0)
+void CsvFileScanner::constructorHelper(const std::string& metadataFileName) 
 {
     std::fstream mfs(metadataFileName);
     if (!mfs.is_open()) {
@@ -99,6 +90,39 @@ CsvFileScanner::CsvFileScanner(
     if (!dfs_.is_open()) {
         throw NonExistentFile();
     }
+}
+
+CsvFileScanner::CsvFileScanner(
+    const std::string& metadataFileName,
+    const std::string& dataFileName,
+    const Expression& filterExpr)
+    : metadata_()
+    , dataFileName_(dataFileName)
+    , dfs_()
+    , filterExpr_(filterExpr)
+    , readLines_(0)
+    , errorLines_(0)
+{
+    constructorHelper(metadataFileName);
+    for (size_t i = 0; i < metadata_.size(); ++i) {
+        projections_.emplace_back(OpCode::Ref, metadata_[i].fieldName);
+    }
+}
+
+CsvFileScanner::CsvFileScanner(
+    const std::string& metadataFileName,
+    const std::string& dataFileName,
+    const Expression& filterExpr,
+    const std::vector<Expression>& projections)
+    : metadata_()
+    , dataFileName_(dataFileName)
+    , dfs_()
+    , filterExpr_(filterExpr)
+    , readLines_(0)
+    , errorLines_(0)
+{
+    constructorHelper(metadataFileName);
+    projections_ = projections;
 }
 
 void CsvFileScanner::checkError() 
@@ -170,7 +194,12 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
         }
     }
 
-    return std::move(r);
+    std::vector<std::any> output;
+    for (size_t i = 0; i < projections_.size(); ++i) {
+        output.emplace_back(std::move(projections_[i].eval(metadata_, r)));
+    }
+
+    return std::move(output);
 }
 
 } // namespace codein
