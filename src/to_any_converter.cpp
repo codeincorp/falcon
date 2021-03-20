@@ -38,32 +38,32 @@ using AnyConverterMap = std::unordered_map<
     std::function<std::any(const std::string&)>
 >;
 
-/**
- * @brief The hash table between type and string-to-value converter function.
- * Converter function's return type is std::any which can contain any value inside it.
- * FieldMetadataInfo provides type info with typeIndex and the type info can be used
- * to convert a string into a value of that type.
- */
-AnyConverterMap anyConverters {
-    toAnyConverter<int>([](const std::string& s) {
-        return stoi(s);
-    }),
-    toAnyConverter<unsigned>([](const std::string& s) {
-        return static_cast<unsigned>(stoul(s));
-    }),
-    toAnyConverter<float>([](const std::string& s) {
-        return stof(s);
-    }),
-    toAnyConverter<double>([](const std::string& s) {
-        return stod(s);
-    }),
-    toAnyConverter<std::string>([](const std::string& s) {
-        return s;
-    }),
-};
-
 std::any convertTo(const std::type_index& ti, const std::string& s) noexcept
 {
+    /**
+     * @brief The hash table between type and string-to-value converter function.
+     * Converter function's return type is std::any which can contain any value inside it.
+     * FieldMetadataInfo provides type info with typeIndex and the type info can be used
+     * to convert a string into a value of that type.
+     */
+    static const AnyConverterMap anyConverters {
+        toAnyConverter<int>([](const std::string& s) {
+            return stoi(s);
+        }),
+        toAnyConverter<unsigned>([](const std::string& s) {
+            return static_cast<unsigned>(stoul(s));
+        }),
+        toAnyConverter<float>([](const std::string& s) {
+            return stof(s);
+        }),
+        toAnyConverter<double>([](const std::string& s) {
+            return stod(s);
+        }),
+        toAnyConverter<std::string>([](const std::string& s) {
+            return s;
+        }),
+    };
+
     try {
         if (const auto it = anyConverters.find(ti); it != anyConverters.cend()) {
             return it->second(s);

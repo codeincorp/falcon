@@ -13,20 +13,27 @@ public:
     void open() override
     {
         it_ = lines_.cbegin();
+        isOpen_ = true;
     }
 
     void reopen() override
     {
+        assert(isOpen_);
+
         open();
     }
 
     bool hasMore() const override
     {
+        assert(isOpen_);
+
         return it_ != lines_.cend();
     }
 
     std::optional<std::vector<std::any>> processNext() override
     {
+        assert(isOpen_);
+
         if (!hasMore()) {
             return std::nullopt;
         }
@@ -58,11 +65,14 @@ public:
     MockScanner(const codein::Metadata& metadata, const std::vector<std::string>& lines)
         : metadata_(metadata)
         , lines_(lines)
+        , it_(lines_.cend())
+        , isOpen_(false)
     {}
 
 private:
     codein::Metadata metadata_;
     std::vector<std::string> lines_;
     std::vector<std::string>::const_iterator it_;
+    bool isOpen_;
 };
 
