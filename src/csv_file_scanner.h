@@ -90,6 +90,7 @@ public:
     }
 
 private:
+
     /** 
      * @brief Constructs a new Csv File Scanner object to read lines in a CSV file.
      * 
@@ -100,8 +101,14 @@ private:
     CsvFileScanner(const std::string& metadataFileName,
         const std::string& dataFileName, const Expression& filterExpr = kAlwaysTrue);
 
+    CsvFileScanner(const std::string& metadataFileName,
+        const std::string& dataFileName, const Expression& filterExpr, 
+        const std::vector<Expression>& projections);
+
     // helper function for processNext to check if there are too many error lines.
     void checkError();
+
+    void makeIncludeAllProjections();
 
     // threshold to decide if there are too many error lines.
     const unsigned int kThreshold = 30;
@@ -118,6 +125,8 @@ private:
     unsigned int readLines_;
     // number of error lines that were discrepant with metadata_.
     unsigned int errorLines_;
+    // projections to get desired columns
+    std::vector<Expression> projections_;
 };
 
 /**
