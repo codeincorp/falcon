@@ -1,8 +1,10 @@
 #include <any>
 #include <cassert>
+#include <concepts>
 #include <functional>
 #include <string>
 #include <typeindex>
+#include <type_traits>
 
 #include "any_visitor.h"
 #include "to_any_converter.h"
@@ -212,10 +214,20 @@ std::any operator%(const std::any& lhs, const std::any& rhs)
     return apply(anyModVisitors, lhs, rhs);
 }
 
-using AnyUnaryOp = std::function<std::size_t (const std::any&)>;
+bool notAny(const std::any& lhs) {
+    try {
+        return !std::any_cast<bool>(lhs);
+    }
+    catch (const std::bad_any_cast&) {
+        throw UnsupportedOperation();
+    }
+};
+
+using AnyHashOp = std::function<std::size_t (const std::any&)>;
+using AnyHashOpVisitorMap = std::unordered_map<std::type_index, AnyHashOp>;
 
 template <typename T, typename F>
-constexpr std::pair<const std::type_index, AnyUnaryOp>
+constexpr std::pair<const std::type_index, AnyHashOp>
 toAnyHashVisitor(F const &f)
 {
     return {
@@ -228,18 +240,7 @@ toAnyHashVisitor(F const &f)
     };
 }
 
-bool notAny(const std::any& lhs) {
-    try {
-        return !std::any_cast<bool>(lhs);
-    }
-    catch (const std::bad_any_cast&) {
-        throw UnsupportedOperation();
-    }
-};
-
-using AnyUnaryOpVisitorMap = std::unordered_map<std::type_index, AnyUnaryOp>;
-
-inline std::size_t apply(const AnyUnaryOpVisitorMap& opMap, const std::any& lhs)
+inline std::size_t apply(const AnyHashOpVisitorMap& opMap, const std::any& lhs)
 {
     auto ti = std::type_index(lhs.type());
     const auto it = opMap.find(ti);
@@ -250,7 +251,7 @@ inline std::size_t apply(const AnyUnaryOpVisitorMap& opMap, const std::any& lhs)
     return it->second(lhs);
 }
 
-AnyUnaryOpVisitorMap anyHashVisitors{
+AnyHashOpVisitorMap anyHashVisitors{
     toAnyHashVisitor<int>(std::hash<int>()),
     toAnyHashVisitor<unsigned>(std::hash<unsigned>()),
     toAnyHashVisitor<float>(std::hash<float>()),
@@ -261,6 +262,89 @@ AnyUnaryOpVisitorMap anyHashVisitors{
 std::size_t hashAny(const std::any& lhs)
 {
     return codein::apply(anyHashVisitors, lhs);
+}
+
+using TypeIndexPair = std::pair<std::type_index, std::type_index>;
+
+struct TypeIndexPairHasher {
+    std::size_t operator()(const TypeIndexPair& p) const
+    {
+        auto hasher = std::hash<std::type_index>();
+        return hasher(p.first) ^ hasher(p.second);
+    }
+};
+
+using AnyUnaryOp = std::function<std::any (const std::any&)>;
+using AnyConvertOpVisitorMap = std::unordered_map<TypeIndexPair, AnyUnaryOp, TypeIndexPairHasher>;
+
+template <typename T, typename U, typename F>
+constexpr std::pair<const TypeIndexPair, AnyUnaryOp>
+toAnyConvertVisitor(F const &f)
+{
+    return {
+        {std::type_index(typeid(T)), std::type_index(typeid(U))},
+        [g = f](const std::any& lhs) -> std::any
+        {
+            static_assert(!std::is_void_v<T> && !std::is_void_v<U> && !std::same_as<T, U>);
+            return g(std::any_cast<const T&>(lhs));
+        }
+    };
+}
+
+template <typename T, typename U>
+struct Convert {
+    std::any operator()(const T& v) const {
+        return static_cast<U>(v);
+    }
+};
+
+template <typename T>
+struct Convert<T, std::string> {
+    std::any operator()(const T& v) const {
+        return std::to_string(v);
+    }
+};
+
+AnyConvertOpVisitorMap anyConvertVisitors{
+    toAnyConvertVisitor<bool, int>(Convert<bool, int>()),
+    toAnyConvertVisitor<bool, unsigned>(Convert<bool, unsigned>()),
+    toAnyConvertVisitor<bool, float>(Convert<bool, float>()),
+    toAnyConvertVisitor<bool, double>(Convert<bool, double>()),
+    toAnyConvertVisitor<bool, std::string>(Convert<bool, std::string>()),
+    toAnyConvertVisitor<int, bool>(Convert<int, bool>()),
+    toAnyConvertVisitor<int, unsigned>(Convert<int, unsigned>()),
+    toAnyConvertVisitor<int, float>(Convert<int, float>()),
+    toAnyConvertVisitor<int, double>(Convert<int, double>()),
+    toAnyConvertVisitor<int, std::string>(Convert<int, std::string>()),
+    toAnyConvertVisitor<unsigned, bool>(Convert<unsigned, bool>()),
+    toAnyConvertVisitor<unsigned, int>(Convert<unsigned, int>()),
+    toAnyConvertVisitor<unsigned, float>(Convert<unsigned, float>()),
+    toAnyConvertVisitor<unsigned, double>(Convert<unsigned, double>()),
+    toAnyConvertVisitor<unsigned, std::string>(Convert<unsigned, std::string>()),
+    toAnyConvertVisitor<float, bool>(Convert<float, bool>()),
+    toAnyConvertVisitor<float, int>(Convert<float, int>()),
+    toAnyConvertVisitor<float, unsigned>(Convert<float, unsigned>()),
+    toAnyConvertVisitor<float, double>(Convert<float, double>()),
+    toAnyConvertVisitor<float, std::string>(Convert<float, std::string>()),
+    toAnyConvertVisitor<double, bool>(Convert<double, bool>()),
+    toAnyConvertVisitor<double, int>(Convert<double, int>()),
+    toAnyConvertVisitor<double, unsigned>(Convert<double, unsigned>()),
+    toAnyConvertVisitor<double, float>(Convert<double, float>()),
+    toAnyConvertVisitor<double, std::string>(Convert<double, std::string>()),
+};
+
+std::any convertAny(const std::any& lhs, const std::string& typeName)
+{
+    auto fromTi = std::type_index(lhs.type());
+    auto toTi = convertToTypeid(typeName);
+
+    const auto it = anyConvertVisitors.find(TypeIndexPair{fromTi, toTi});
+
+    if (it == anyConvertVisitors.cend()) {
+        throw UnsupportedOperation();
+    }
+
+    return it->second(lhs);
 }
 
 }

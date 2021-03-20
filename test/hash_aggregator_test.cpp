@@ -8,6 +8,7 @@
 
 #include "iterator.h"
 #include "hash_aggregator.h"
+#include "projector.h"
 #include "mock_scanner.h"
 
 using namespace std;
@@ -303,6 +304,112 @@ TEST_F(HashAggregatorTests, SumTest)
         auto expectedSum = accumulate(range.first, range.second, 0.0, [](auto lhs, const auto& rhs) {
             return lhs + rhs.second;
         });
+        EXPECT_EQ(sumVal, expectedSum);
+
+        ++n;
+    }
+
+    EXPECT_EQ(n, expectedNumData);
+}
+
+TEST_F(HashAggregatorTests, AverageTest)
+{
+    Metadata outputMetadata{
+        {"a", tiInt},
+        {"b", tiString},
+        {"count", tiUint},
+        {"sumc", tiUint}
+    };
+    auto groupKeyCols = vector<string>{"a", "b"};
+
+    // sum(c) aggregation
+    vector<AggregationExpression> aggExprs{
+        AggregationExpression{
+            // The initial value when a group is created
+            .initExpr = {
+                .opCode = OpCode::Const,
+                .leafOrChildren = std::any(1u),
+            },
+            // Add 1 whenever a new member is added
+            .contExpr = {
+                .opCode = OpCode::Add,
+                .leafOrChildren = vector<Expression>{
+                    {.opCode = OpCode::Ref, .leafOrChildren = std::any("count"s)},
+                    {.opCode = OpCode::Const, .leafOrChildren = std::any(1u)},
+                }
+            }
+        },
+        AggregationExpression{
+            // The initial value is set to the first value of "c" when a group is created
+            .initExpr = {
+                .opCode = OpCode::Ref,
+                .leafOrChildren = std::any("c"s),
+            },
+            // sumc + c
+            .contExpr = {
+                .opCode = OpCode::Add,
+                .leafOrChildren = vector<Expression>{
+                    {.opCode = OpCode::Ref, .leafOrChildren = std::any("sumc"s)},
+                    {.opCode = OpCode::Ref, .leafOrChildren = std::any("c"s)},
+                }
+            }
+        },
+    };
+
+    auto mockScanner = makeIterator<MockScanner>(metadata, lines);
+    auto hashAggregator = makeIterator<HashAggregator>(move(mockScanner), outputMetadata, groupKeyCols, aggExprs);
+
+    vector<Expression> projections{
+        {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = std::any("b"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = std::any("count"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = std::any("sumc"s)},
+        {
+            .opCode = OpCode::Div,
+            .leafOrChildren = vector<Expression>{
+                {.opCode = OpCode::Ref, .leafOrChildren = std::any("sumc"s)},
+                {
+                    .opCode = OpCode::Conv,
+                    .leafOrChildren = vector<Expression>{
+                        {.opCode = OpCode::Ref, .leafOrChildren = std::any("count"s)},
+                        {.opCode = OpCode::Const, .leafOrChildren = std::any("double"s)},
+                    }
+                },
+            },
+        },
+    };
+    Metadata projMetadata{
+        {"a", tiInt},
+        {"b", tiString},
+        {"count", tiUint},
+        {"sumc", tiUint},
+        {"avg", tiDouble}
+    };
+    auto projector = makeIterator<Projector>(move(hashAggregator), projections, projMetadata);
+
+    projector->open();
+    size_t n = 0;
+    const size_t expectedNumData = 7;
+    while (projector->hasMore()) {
+        auto optData = projector->processNext();
+        if (!optData) {
+            break;
+        }
+
+        auto a = any_cast<int>((*optData)[0]);
+        auto b = any_cast<string>((*optData)[1]);
+        auto count = any_cast<unsigned>((*optData)[2]);
+        auto sumVal = any_cast<double>((*optData)[3]);
+        auto avg = any_cast<double>((*optData)[4]);
+
+        auto groupKey = make_pair(a, b);
+        auto range = expectedDataMap.equal_range(groupKey);
+        auto expectedCount = expectedDataMap.count(groupKey);
+        auto expectedSum = accumulate(range.first, range.second, 0.0, [](auto lhs, const auto& rhs) {
+            return lhs + rhs.second;
+        });
+
+        EXPECT_EQ(count, expectedCount);
         EXPECT_EQ(sumVal, expectedSum);
 
         ++n;
