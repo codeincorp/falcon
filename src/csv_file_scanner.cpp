@@ -76,16 +76,7 @@ Metadata parseLineMetadata(const std::string& line)
     return reVec;
 }
 
-CsvFileScanner::CsvFileScanner(
-    const std::string& metadataFileName,
-    const std::string& dataFileName,
-    const Expression& filterExpr)
-    : metadata_()
-    , dataFileName_(dataFileName)
-    , dfs_()
-    , filterExpr_(filterExpr)
-    , readLines_(0)
-    , errorLines_(0)
+void CsvFileScanner::constructorHelper(const std::string& metadataFileName, const std::string& dataFileName) 
 {
     std::fstream mfs(metadataFileName);
     if (!mfs.is_open()) {
@@ -95,10 +86,42 @@ CsvFileScanner::CsvFileScanner(
     std::getline(mfs, reading);
     metadata_ = parseLineMetadata(reading);
 
-    dfs_.open(dataFileName_);
+    dfs_.open(dataFileName);
     if (!dfs_.is_open()) {
         throw NonExistentFile();
     }
+}
+
+CsvFileScanner::CsvFileScanner(
+    const std::string& metadataFileName,
+    const std::string& dataFileName,
+    const Expression& filterExpr)
+    : metadata_()
+    , dfs_()
+    , filterExpr_(filterExpr)
+    , readLines_(0)
+    , errorLines_(0)
+{
+    constructorHelper(metadataFileName, dataFileName);
+
+    for (size_t i = 0; i < metadata_.size(); ++i) {
+        projections_.emplace_back(OpCode::Ref, metadata_[i].fieldName);
+    }
+}
+
+CsvFileScanner::CsvFileScanner(
+    const std::string& metadataFileName,
+    const std::string& dataFileName,
+    const Expression& filterExpr,
+    const std::vector<Expression>& projections)
+    : metadata_()
+    , dfs_()
+    , filterExpr_(filterExpr)
+    , readLines_(0)
+    , errorLines_(0)
+    , projections_(projections)
+{
+    constructorHelper(metadataFileName, dataFileName);
 }
 
 void CsvFileScanner::checkError() 
@@ -170,7 +193,14 @@ std::optional<std::vector<std::any>> CsvFileScanner::processNext()
         }
     }
 
-    return std::move(r);
+    size_t size = projections_.size();
+    std::vector<std::any> output;
+    output.reserve(size);
+    for (size_t i = 0; i < size; ++i) {
+        output.emplace_back(std::move(projections_[i].eval(metadata_, r)));
+    }
+
+    return std::move(output);
 }
 
 } // namespace codein
