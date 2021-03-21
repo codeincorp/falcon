@@ -935,24 +935,25 @@ TEST(CsvFileScannerTests, UnsupportedOperationProjectionsTest)
 TEST(CsvFileScannerTests, unorderedProjectionsTest)
 {
     vector<vector<any>> expectedFields {
-        {1u, 3},
-        {2u, 2},
-        {2u, 3},
-        {1u, 1},
-        {2u, 1},
-        {2u, 1},
-        {1u, 3},
-        {2u, 3},
-        {1u, 3},
-        {1u,3},
-        {2u,3},
-        {2u,5},
-        {2u,4},
+        {"OTTOGI"s, 3, 1u},
+        {"Nongshim"s, 2, 2u},
+        {"Paldo"s, 3, 2u},
+        {"Samyang"s, 1, 1u},
+        {"Paldo"s, 1, 2u},
+        {"Nongshim"s, 1, 2u},
+        {"Paldo"s, 3, 1u},
+        {"Nongshim"s, 3, 2u},
+        {"Samyang"s, 3, 1u},
+        {"Samyang"s, 3, 1u},
+        {"OTTOGI"s, 3, 2u},
+        {"OTTOGI"s, 5, 2u},
+        {"Samyang"s, 4, 2u}
     };
 
     vector<Expression> projections {
-        {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = std::any("d"s)},
         {.opCode = OpCode::Ref, .leafOrChildren = std::any("c"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)}
     };
 
     verifyScannerOutput(expectedFields, 
