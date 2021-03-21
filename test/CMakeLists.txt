@@ -22,6 +22,7 @@ set(TEST_SOURCES
     any_visitor_test.cpp
     projector_test.cpp
     expression_test.cpp
+    conversion_test.cpp
     filter_test.cpp
     metadata_test.cpp
     hash_aggregator_test.cpp

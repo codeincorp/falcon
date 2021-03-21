@@ -47,6 +47,7 @@ std::any convertTo(const std::type_index& ti, const std::string& s) noexcept
      * to convert a string into a value of that type.
      */
     static const AnyConverterMap anyConverters {
+        // TODO: #112 Add string to bool converter
         toAnyConverter<int>([](const std::string& s) {
             return stoi(s);
         }),
@@ -78,9 +79,12 @@ std::any convertTo(const std::type_index& ti, const std::string& s) noexcept
 
 const std::unordered_map<std::string, std::type_index> typeMap {
     {"int", std::type_index(typeid(int))},
+    {"int32_t", std::type_index(typeid(int))},
     {"bool", std::type_index(typeid(bool))},
     {"void", std::type_index(typeid(void))},
     {"uint", std::type_index(typeid(unsigned))},
+    {"unsigned", std::type_index(typeid(unsigned))},
+    {"unsigned int", std::type_index(typeid(unsigned))},
     {"float", std::type_index(typeid(float))},
     {"string", std::type_index(typeid(std::string))},
     {"double", std::type_index(typeid(double))}

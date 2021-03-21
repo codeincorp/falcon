@@ -368,6 +368,8 @@ TEST_F(HashAggregatorTests, AverageTest)
             .opCode = OpCode::Div,
             .leafOrChildren = vector<Expression>{
                 {.opCode = OpCode::Ref, .leafOrChildren = std::any("sumc"s)},
+                // conv(count, "double")
+                // sumc is double and so count must be converted to double before division.
                 {
                     .opCode = OpCode::Conv,
                     .leafOrChildren = vector<Expression>{
