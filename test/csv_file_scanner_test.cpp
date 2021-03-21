@@ -731,7 +731,8 @@ TEST(CsvFileScannerTests, noPassFilterTest)
     EXPECT_EQ(i, kExpectedPassedLines);
 }
 
-void verifyScannerOutput(const vector<vector<any>>& expectedFields, const unique_ptr<Iterator>& scanner) {
+void verifyScannerOutput(const vector<vector<any>>& expectedFields, const unique_ptr<Iterator>& scanner) 
+{
     const size_t kExpectedPassLines = expectedFields.size();
     size_t i = 0;
 

@@ -98,7 +98,7 @@ private:
         const std::string& dataFileName, const Expression& filterExpr = kAlwaysTrue);
 
     /**
-     * @brief Second constructor where arguments must specify values of filterExpr and projections.
+     * @brief Constructor where arguments must specify values of filterExpr and projections.
      * 
      * @param metadataFileName: name of the metadata file.
      * @param dataFileName: name of the CSV file.
