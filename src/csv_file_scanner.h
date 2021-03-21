@@ -47,12 +47,7 @@ public:
     template <typename T, typename... ArgTs>
     friend std::unique_ptr<Iterator> makeIterator(ArgTs&&...);
 
-    void open() override
-    {
-        if (!dfs_.is_open()) {
-            dfs_.open(dataFileName_);
-        }
-    }
+    void open() override {}
 
     void reopen() override
     {
@@ -92,25 +87,35 @@ public:
 private:
 
     /** 
-     * @brief Constructs a new Csv File Scanner object to read lines in a CSV file.
+     * @brief Constructs a new Csv File Scanner object to read lines in a CSV file. it sets
+     *        projections_ to its default value so that it returns every column.
      * 
      * @param metadataFileName: name of the file that contains metadata about CSV file. 
      * @param dataFileName: name of the CSV file that this CsvFileScanner will read. 
-     * @param expr: Expression to filter desired lines. if not specified, passes every line.
+     * @param filterExpr: Expression to filter desired lines. if not specified, passes every line.
      */
     CsvFileScanner(const std::string& metadataFileName,
         const std::string& dataFileName, const Expression& filterExpr = kAlwaysTrue);
 
+    /**
+     * @brief Second constructor where arguments must specify values of filterExpr and projections.
+     * 
+     * @param metadataFileName: name of the metadata file.
+     * @param dataFileName: name of the CSV file.
+     * @param filterExpr: Expression to filter desired lines.
+     * @param projections: projections to select desired columns or output in a line.
+     */
     CsvFileScanner(const std::string& metadataFileName,
         const std::string& dataFileName, const Expression& filterExpr, 
         const std::vector<Expression>& projections);
 
     /**
-     * @brief Helper function for constructors.
+     * @brief Helper function for constructors. it opens file stream to csv file and its metadata file.
      * 
-     * @param metadataFileName: arg received from constructor metadataFileName
+     * @param metadataFileName: name of the metadata file, which will be passed from the calling constructor.
+     * @param dataFileName: name of the csv file, which will be passed from the calling constructor.
      */
-    void constructorHelper(const std::string& metadataFileName);
+    void constructorHelper(const std::string& metadataFileName, const std::string& dataFileName);
 
     // helper function for processNext to check if there are too many error lines.
     void checkError();
@@ -120,8 +125,6 @@ private:
 
     // metadata about the CSV file.
     Metadata metadata_;
-    // name of the CSV file name.
-    std::string dataFileName_;
     // file stream to open and read CSV file and metadata file.
     mutable std::fstream dfs_;
     // expression based on which this object will filter lines.
