@@ -151,6 +151,12 @@ const std::vector<Evaluator> evaluators{
             return n.children()[2](metadata, data);
         }
     },
+
+    // OpCode::Conv
+    [](const Expression& n, const Metadata& metadata, const std::vector<std::any>& data) {
+        auto typeName = std::any_cast<std::string>(n.children()[1](metadata, data));
+        return convertAny(n.children()[0](metadata, data), typeName);
+    }
 };
 
 std::any Expression::eval(const Metadata& metadata, const std::vector<std::any>& data) const {

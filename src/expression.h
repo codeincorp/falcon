@@ -35,6 +35,7 @@ enum class OpCode {
     And,
     Or,
     Cond,
+    Conv,
 };
 
 struct Expression {
