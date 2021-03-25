@@ -40,33 +40,76 @@ bool HashAggregator::KeyEqual::operator()(const std::vector<std::any>& lhs, cons
 std::vector<Expression> HashAggregator::createGroupKeyProjExprs(
     const Metadata& inputMetadata, const std::vector<std::string>& groupKeyCols)
 {
-    std::vector<Expression> groupKeyProjExprs;
-    groupKeyProjExprs.reserve(groupKeyCols.size());
+    std::vector<Expression> groupKeyProjs;
+    groupKeyProjs.reserve(groupKeyCols.size());
 
     for (const auto& col: groupKeyCols) {
         auto [found, _] = inputMetadata.find(col);
         assert(found);
-        groupKeyProjExprs.emplace_back(Expression{.opCode = OpCode::Ref, .leafOrChildren = std::any(col)});
+        groupKeyProjs.emplace_back(Expression{.opCode = OpCode::Ref, .leafOrChildren = std::any(col)});
     }
 
-    return groupKeyProjExprs;
+    return groupKeyProjs;
 }
 
 HashAggregator::HashAggregator(
     std::unique_ptr<Iterator>&& child,
-    const Metadata& outputMetadata,
     const std::vector<std::string>& groupKeyCols,
+    const Metadata& groupValMetadata,
     const std::vector<AggregationExpression>& aggExprs)
     : child_(std::move(child))
     , inputMetadata_(child_->getMetadata())
-    , outputMetadata_(outputMetadata)
-    , groupKeyProjExprs_(createGroupKeyProjExprs(inputMetadata_, groupKeyCols))
+    , groupMetadata_()
+    , outputMetadata_()
+    , groupKeyProjs_(createGroupKeyProjExprs(inputMetadata_, groupKeyCols))
     , aggExprs_(aggExprs)
+    , outputProjs_()
     , hashStorage_(1023)
 {
     // The intermediate aggregation values are part of input values to aggregation expressions.
-    for (size_t i = groupKeyCols.size(); i < outputMetadata_.size(); ++i) {
-        inputMetadata_.emplace_back(outputMetadata_[i]);
+    for (size_t i = 0; i < groupValMetadata.size(); ++i) {
+        inputMetadata_.emplace_back(groupValMetadata[i]);
+    }
+
+    for (size_t i = 0; i < groupKeyCols.size(); ++i) {
+        groupMetadata_.emplace_back(inputMetadata_[inputMetadata_[groupKeyCols[i]]]);
+    }
+
+    for (size_t i = 0; i < groupValMetadata.size(); ++i) {
+        groupMetadata_.emplace_back(groupValMetadata[i]);
+    }
+
+    // If outputMetadata is not given, it is metadata for group key columns + group vals
+    outputMetadata_ = groupMetadata_;
+}
+
+HashAggregator::HashAggregator(
+    std::unique_ptr<Iterator>&& child,
+    const std::vector<std::string>& groupKeyCols,
+    const Metadata& groupValMetadata,
+    const Metadata& outputMetadata,
+    const std::vector<AggregationExpression>& aggExprs,
+    const std::vector<Expression>& outputProjs)
+    : child_(std::move(child))
+    , inputMetadata_(child_->getMetadata())
+    , groupMetadata_()
+    , outputMetadata_(outputMetadata)
+    , groupKeyProjs_(createGroupKeyProjExprs(inputMetadata_, groupKeyCols))
+    , aggExprs_(aggExprs)
+    , outputProjs_(outputProjs)
+    , hashStorage_(1023)
+{
+    // The intermediate aggregation values are part of input values to aggregation expressions.
+    for (size_t i = 0; i < groupValMetadata.size(); ++i) {
+        inputMetadata_.emplace_back(groupValMetadata[i]);
+    }
+
+    for (size_t i = 0; i < groupKeyCols.size(); ++i) {
+        groupMetadata_.emplace_back(inputMetadata_[inputMetadata_[groupKeyCols[i]]]);
+    }
+
+    for (size_t i = 0; i < groupValMetadata.size(); ++i) {
+        groupMetadata_.emplace_back(groupValMetadata[i]);
     }
 }
 
@@ -91,9 +134,9 @@ void HashAggregator::open()
         }
 
         std::vector<std::any> groupKeyVals;
-        groupKeyVals.reserve(groupKeyProjExprs_.size());
+        groupKeyVals.reserve(groupKeyProjs_.size());
 
-        for (const auto& proj : groupKeyProjExprs_) {
+        for (const auto& proj : groupKeyProjs_) {
             groupKeyVals.emplace_back(proj.eval(inputMetadata_, optInput.value()));
         }
 
@@ -125,7 +168,17 @@ std::optional<std::vector<std::any>> HashAggregator::processNext()
     auto cit = it_++;
     auto nh = hashStorage_.extract(cit);
     
-    return mergeValues(std::move(nh.key()), nh.mapped());
+    auto rcandidate = mergeValues(std::move(nh.key()), nh.mapped());
+    if (outputProjs_.size() == 0) {
+        return std::move(rcandidate);
+    }
+
+    for (size_t i = 0; i < outputProjs_.size(); ++i) {
+        rcandidate[i] = std::move(outputProjs_[i](groupMetadata_, rcandidate));
+    }
+    rcandidate.resize(outputProjs_.size());
+
+    return std::move(rcandidate);
 }
 
 } // namespace codein;
