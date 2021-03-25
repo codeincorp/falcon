@@ -5,6 +5,8 @@
 #include "iterator.h"
 #include "csv_file_scanner.h"
 
+namespace codein {
+
 class MockScanner : public codein::Iterator {
 public:
     template <typename T, typename... ArgTs>
@@ -76,3 +78,4 @@ private:
     bool isOpen_;
 };
 
+}

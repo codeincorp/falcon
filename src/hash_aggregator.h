@@ -60,16 +60,24 @@ private:
     /**
      * @brief Constructs a new HashAggregator object.
      * 
-     * @param child 
-     * @param outputMetadata Includes aggregation variables.
+     * @param child A child iterator.
      * @param groupKeyCols Columns for group key.
+     * @param groupValMetadata Defines aggregation variables.
      * @param aggExprs Aggregation expressions.
      */
     HashAggregator(
         std::unique_ptr<Iterator>&& child,
-        const Metadata& outputMetadata,
         const std::vector<std::string>& groupKeyCols,
+        const Metadata& groupValMetadata,
         const std::vector<AggregationExpression>& aggExprs);
+
+    HashAggregator(
+        std::unique_ptr<Iterator>&& child,
+        const std::vector<std::string>& groupKeyCols,
+        const Metadata& groupValMetadata,
+        const Metadata& outputMetadata,
+        const std::vector<AggregationExpression>& aggExprs,
+        const std::vector<Expression>& outputProjs);
 
     struct Hasher {
         std::size_t operator()(const std::vector<std::any>& groupKeyVals) const;
@@ -87,9 +95,11 @@ private:
 
     std::unique_ptr<Iterator> child_;
     Metadata inputMetadata_;
-    const Metadata outputMetadata_;
-    const std::vector<Expression> groupKeyProjExprs_;
+    Metadata groupMetadata_;
+    Metadata outputMetadata_;
+    const std::vector<Expression> groupKeyProjs_;
     const std::vector<AggregationExpression> aggExprs_;
+    std::vector<Expression> outputProjs_;
     HashStorageType hashStorage_;
     HashStorageType::const_iterator it_;
 };

@@ -80,9 +80,7 @@ unordered_multimap<KeyType, double> HashAggregatorTests::expectedDataMap;
 
 TEST_F(HashAggregatorTests, BasicTest)
 {
-    Metadata outputMetadata{
-        {"a", tiInt},
-        {"b", tiString},
+    Metadata groupValMetadata{
         {"count", tiUint}
     };
     auto groupKeyCols = vector<string>{"a", "b"};
@@ -107,7 +105,15 @@ TEST_F(HashAggregatorTests, BasicTest)
     };
 
     auto mockScanner = makeIterator<MockScanner>(metadata, lines);
-    auto hashAggregator = makeIterator<HashAggregator>(move(mockScanner), outputMetadata, groupKeyCols, aggExprs);
+    auto hashAggregator = makeIterator<HashAggregator>(
+        move(mockScanner), groupKeyCols, groupValMetadata, aggExprs);
+
+    Metadata expectedOutputMetadata{
+        {"a", tiInt},
+        {"b", tiString},
+        {"count", tiUint},
+    };
+    EXPECT_TRUE(hashAggregator->getMetadata() == expectedOutputMetadata);
 
     hashAggregator->open();
     size_t n = 0;
@@ -132,9 +138,7 @@ TEST_F(HashAggregatorTests, BasicTest)
 
 TEST_F(HashAggregatorTests, MaxTest)
 {
-    Metadata outputMetadata{
-        {"a", tiInt},
-        {"b", tiString},
+    Metadata groupValMetadata{
         {"maxc", tiUint}
     };
     auto groupKeyCols = vector<string>{"a", "b"};
@@ -166,7 +170,15 @@ TEST_F(HashAggregatorTests, MaxTest)
     };
 
     auto mockScanner = makeIterator<MockScanner>(metadata, lines);
-    auto hashAggregator = makeIterator<HashAggregator>(move(mockScanner), outputMetadata, groupKeyCols, aggExprs);
+    auto hashAggregator = makeIterator<HashAggregator>(
+        move(mockScanner), groupKeyCols, groupValMetadata, aggExprs);
+
+    Metadata expectedOutputMetadata{
+        {"a", tiInt},
+        {"b", tiString},
+        {"maxc", tiUint},
+    };
+    EXPECT_TRUE(hashAggregator->getMetadata() == expectedOutputMetadata);
 
     hashAggregator->open();
     size_t n = 0;
@@ -195,9 +207,7 @@ TEST_F(HashAggregatorTests, MaxTest)
 
 TEST_F(HashAggregatorTests, MinTest)
 {
-    Metadata outputMetadata{
-        {"a", tiInt},
-        {"b", tiString},
+    Metadata groupValMetadata{
         {"minc", tiUint}
     };
     auto groupKeyCols = vector<string>{"a", "b"};
@@ -229,7 +239,15 @@ TEST_F(HashAggregatorTests, MinTest)
     };
 
     auto mockScanner = makeIterator<MockScanner>(metadata, lines);
-    auto hashAggregator = makeIterator<HashAggregator>(move(mockScanner), outputMetadata, groupKeyCols, aggExprs);
+    auto hashAggregator = makeIterator<HashAggregator>(
+        move(mockScanner), groupKeyCols, groupValMetadata, aggExprs);
+
+    Metadata expectedOutputMetadata{
+        {"a", tiInt},
+        {"b", tiString},
+        {"minc", tiUint},
+    };
+    EXPECT_TRUE(hashAggregator->getMetadata() == expectedOutputMetadata);
 
     hashAggregator->open();
     size_t n = 0;
@@ -258,9 +276,7 @@ TEST_F(HashAggregatorTests, MinTest)
 
 TEST_F(HashAggregatorTests, SumTest)
 {
-    Metadata outputMetadata{
-        {"a", tiInt},
-        {"b", tiString},
+    Metadata groupValMetadata{
         {"sumc", tiUint}
     };
     auto groupKeyCols = vector<string>{"a", "b"};
@@ -285,7 +301,15 @@ TEST_F(HashAggregatorTests, SumTest)
     };
 
     auto mockScanner = makeIterator<MockScanner>(metadata, lines);
-    auto hashAggregator = makeIterator<HashAggregator>(move(mockScanner), outputMetadata, groupKeyCols, aggExprs);
+    auto hashAggregator = makeIterator<HashAggregator>(
+        move(mockScanner), groupKeyCols, groupValMetadata, aggExprs);
+
+    Metadata expectedOutputMetadata{
+        {"a", tiInt},
+        {"b", tiString},
+        {"sumc", tiUint},
+    };
+    EXPECT_TRUE(hashAggregator->getMetadata() == expectedOutputMetadata);
 
     hashAggregator->open();
     size_t n = 0;
@@ -312,18 +336,16 @@ TEST_F(HashAggregatorTests, SumTest)
     EXPECT_EQ(n, expectedNumData);
 }
 
-TEST_F(HashAggregatorTests, AverageTest)
+TEST_F(HashAggregatorTests, ProjOverHashAggTest)
 {
-    Metadata outputMetadata{
-        {"a", tiInt},
-        {"b", tiString},
+    Metadata groupValMetadata{
         {"count", tiUint},
-        {"sumc", tiUint}
+        {"sumc", tiDouble}
     };
     auto groupKeyCols = vector<string>{"a", "b"};
 
-    // sum(c) aggregation
     vector<AggregationExpression> aggExprs{
+        // count(*) aggregation
         AggregationExpression{
             // The initial value when a group is created
             .initExpr = {
@@ -339,6 +361,7 @@ TEST_F(HashAggregatorTests, AverageTest)
                 }
             }
         },
+        // sum(c) aggregation
         AggregationExpression{
             // The initial value is set to the first value of "c" when a group is created
             .initExpr = {
@@ -357,7 +380,16 @@ TEST_F(HashAggregatorTests, AverageTest)
     };
 
     auto mockScanner = makeIterator<MockScanner>(metadata, lines);
-    auto hashAggregator = makeIterator<HashAggregator>(move(mockScanner), outputMetadata, groupKeyCols, aggExprs);
+    auto hashAggregator = makeIterator<HashAggregator>(
+        move(mockScanner), groupKeyCols, groupValMetadata, aggExprs);
+
+    Metadata expectedOutputMetadata{
+        {"a", tiInt},
+        {"b", tiString},
+        {"count", tiUint},
+        {"sumc", tiDouble},
+    };
+    EXPECT_TRUE(hashAggregator->getMetadata() == expectedOutputMetadata);
 
     vector<Expression> projections{
         {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
@@ -384,7 +416,7 @@ TEST_F(HashAggregatorTests, AverageTest)
         {"a", tiInt},
         {"b", tiString},
         {"count", tiUint},
-        {"sumc", tiUint},
+        {"sumc", tiDouble},
         {"avg", tiDouble}
     };
     auto projector = makeIterator<Projector>(move(hashAggregator), projections, projMetadata);
@@ -405,14 +437,117 @@ TEST_F(HashAggregatorTests, AverageTest)
         auto avg = any_cast<double>((*optData)[4]);
 
         auto groupKey = make_pair(a, b);
-        auto range = expectedDataMap.equal_range(groupKey);
         auto expectedCount = expectedDataMap.count(groupKey);
+        auto range = expectedDataMap.equal_range(groupKey);
         auto expectedSum = accumulate(range.first, range.second, 0.0, [](auto lhs, const auto& rhs) {
             return lhs + rhs.second;
         });
 
         EXPECT_EQ(count, expectedCount);
         EXPECT_EQ(sumVal, expectedSum);
+        EXPECT_DOUBLE_EQ(avg, expectedSum / static_cast<double>(expectedCount));
+
+        ++n;
+    }
+
+    EXPECT_EQ(n, expectedNumData);
+}
+
+TEST_F(HashAggregatorTests, AverageTest)
+{
+    Metadata groupValMetadata{
+        {"count", tiUint},
+        {"sumc", tiDouble}
+    };
+    Metadata outputMetadata{
+        {"a", tiInt},
+        {"b", tiString},
+        {"avg", tiDouble}
+    };
+    auto groupKeyCols = vector<string>{"a", "b"};
+
+    vector<AggregationExpression> aggExprs{
+        // count(*) aggregation
+        AggregationExpression{
+            // The initial value when a group is created
+            .initExpr = {
+                .opCode = OpCode::Const,
+                .leafOrChildren = std::any(1u),
+            },
+            // Add 1 whenever a new member is added
+            .contExpr = {
+                .opCode = OpCode::Add,
+                .leafOrChildren = vector<Expression>{
+                    {.opCode = OpCode::Ref, .leafOrChildren = std::any("count"s)},
+                    {.opCode = OpCode::Const, .leafOrChildren = std::any(1u)},
+                }
+            }
+        },
+        // sum(c) aggregation
+        AggregationExpression{
+            // The initial value is set to the first value of "c" when a group is created
+            .initExpr = {
+                .opCode = OpCode::Ref,
+                .leafOrChildren = std::any("c"s),
+            },
+            // sumc + c
+            .contExpr = {
+                .opCode = OpCode::Add,
+                .leafOrChildren = vector<Expression>{
+                    {.opCode = OpCode::Ref, .leafOrChildren = std::any("sumc"s)},
+                    {.opCode = OpCode::Ref, .leafOrChildren = std::any("c"s)},
+                }
+            }
+        },
+    };
+
+    vector<Expression> projections{
+        {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)},
+        {.opCode = OpCode::Ref, .leafOrChildren = std::any("b"s)},
+        {
+            .opCode = OpCode::Div,
+            .leafOrChildren = vector<Expression>{
+                {.opCode = OpCode::Ref, .leafOrChildren = std::any("sumc"s)},
+                // conv(count, "double")
+                // sumc is double and so count must be converted to double before division.
+                {
+                    .opCode = OpCode::Conv,
+                    .leafOrChildren = vector<Expression>{
+                        {.opCode = OpCode::Ref, .leafOrChildren = std::any("count"s)},
+                        {.opCode = OpCode::Const, .leafOrChildren = std::any("double"s)},
+                    }
+                },
+            },
+        },
+    };
+
+    auto mockScanner = makeIterator<MockScanner>(metadata, lines);
+    auto hashAggregator = makeIterator<HashAggregator>(
+        move(mockScanner), groupKeyCols, groupValMetadata, outputMetadata, aggExprs, projections);
+
+    EXPECT_TRUE(hashAggregator->getMetadata() == outputMetadata);
+
+    hashAggregator->open();
+    size_t n = 0;
+    const size_t expectedNumData = 7;
+    while (hashAggregator->hasMore()) {
+        auto optData = hashAggregator->processNext();
+        if (!optData) {
+            break;
+        }
+
+        auto a = any_cast<int>((*optData)[0]);
+        auto b = any_cast<string>((*optData)[1]);
+        auto avg = any_cast<double>((*optData)[2]);
+
+        auto groupKey = make_pair(a, b);
+        auto expectedCount = expectedDataMap.count(groupKey);
+        auto range = expectedDataMap.equal_range(groupKey);
+        auto expectedSum = accumulate(range.first, range.second, 0.0, [](auto lhs, const auto& rhs) {
+            return lhs + rhs.second;
+        });
+
+        EXPECT_DOUBLE_EQ(avg, expectedSum / static_cast<double>(expectedCount));
 
         ++n;
     }
