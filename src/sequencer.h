@@ -9,7 +9,7 @@
 namespace codein {
 
 /**
- * @brief Sequence iterator to read multiple files that share common output data format. 
+ * @brief Sequence iterator to read from multiple children sequentially that share common output data format. 
  */
 class Sequencer : public Iterator {
 public:
@@ -19,7 +19,7 @@ public:
     void open()
     {
         children_[0]->open();
-        i = 0;
+        indexOfCurChild = 0;
     }
 
     void reopen() override 
@@ -29,38 +29,39 @@ public:
 
     bool hasMore() const override 
     {
-        return i < children_.size();
+        return indexOfCurChild < children_.size();
     }
 
     std::optional<std::vector<std::any>> processNext();
 
     void close() override
     {
-        children_[i]->close();
-        i = children_.size();
+        children_[indexOfCurChild]->close();
+        indexOfCurChild = children_.size();
     }
 
     const Metadata& getMetadata() const override
     {
         return children_[0]->getMetadata();
     }
+
     ~Sequencer() override {}
 
 private:
-    void checkMetadata();
+    void checkMetadata(const std::vector<std::unique_ptr<Iterator>>& children);
     /**
-     * @brief Construct a new Sequencer object
+     * @brief Constructs a new Sequencer object
      * 
      * @param children: vector of children iterator.
-     * Invariant: Children iterators must have same metadata, filter expression, and projections
-     * in order to have equal output data format. Otherwise, Sequencer should throw an exception.
+     * Invariant: Children iterators must have same metadata in order to have equal output data format. 
+     * Otherwise, Sequencer should throw an exception.
      */
     Sequencer(std::vector<std::unique_ptr<Iterator>>&& children);
 
-    // sequence of children iterator to read files.
+    // sequence of children iterators.
     std::vector<std::unique_ptr<Iterator>> children_;
     // index variable to keep track of which file is being read.
-    size_t i;
+    size_t indexOfCurChild;
 
 };
 
@@ -70,4 +71,4 @@ private:
  */
 class DiscrepantOutputData {};
 
-}// namespace codein
+} // namespace codein

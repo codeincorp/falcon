@@ -2,21 +2,23 @@
 
 namespace codein {
 
-void Sequencer::checkMetadata() 
+void Sequencer::checkMetadata(const std::vector<std::unique_ptr<Iterator>>& children) 
 {
-    Metadata metadata = children_[0]->getMetadata();
-    for (size_t i = 1; i < children_.size(); ++i) {
-        if (children_[i]->getMetadata() != metadata) {
+    Metadata metadata = children[0]->getMetadata();
+    for (size_t i = 1; i < children.size(); ++i) {
+        if (children[i]->getMetadata() != metadata) {
             throw DiscrepantOutputData();
         }
     }
 }
 
 Sequencer::Sequencer(std::vector<std::unique_ptr<Iterator>>&& children)
-    : children_(std::move(children))
-    , i(0)
+    : children_()
+    , indexOfCurChild(children.size())
 {
-    checkMetadata();
+    checkMetadata(children);
+
+    children_ = std::move(children);
 }
 
 std::optional<std::vector<std::any>> Sequencer::processNext()
@@ -25,15 +27,15 @@ std::optional<std::vector<std::any>> Sequencer::processNext()
         return std::nullopt;
     }
 
-    auto output = children_[i]->processNext();
-    if (output == std::nullopt) {
-        ++i;
-        if (i == children_.size()) {
+    auto output = children_[indexOfCurChild]->processNext();
+    while (output == std::nullopt) {
+        ++indexOfCurChild;
+        if (indexOfCurChild == children_.size()) {
             return std::nullopt;
         }
         
-        children_[i]->open();
-        output = children_[i]->processNext();
+        children_[indexOfCurChild]->open();
+        output = children_[indexOfCurChild]->processNext();
     }
 
     return output;
