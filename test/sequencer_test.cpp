@@ -176,7 +176,7 @@ TEST (SequencerTests, BasicTest2)
     compareScannerOutput(expectedFields, scanner);
 }
 
-TEST (SequencerTests, emptyOutputFromChildTest) 
+TEST (SequencerTests, EmptyOutputFromChildTest) 
 {
     Metadata metadata {
         {"a", tiString},
@@ -212,7 +212,7 @@ TEST (SequencerTests, emptyOutputFromChildTest)
     compareScannerOutput(expectedFields, scanner);
 }
 
-TEST (SequencerTests, differentMetadatTest)
+TEST (SequencerTests, DifferentMetadatTest)
 {
     Metadata metadata {
         {"a", tiString},
