@@ -48,7 +48,6 @@ public:
     ~Sequencer() override {}
 
 private:
-    void checkMetadata(const std::vector<std::unique_ptr<Iterator>>& children);
     /**
      * @brief Constructs a new Sequencer object
      * 
@@ -58,11 +57,12 @@ private:
      */
     Sequencer(std::vector<std::unique_ptr<Iterator>>&& children);
 
+    void checkMetadata(const std::vector<std::unique_ptr<Iterator>>& children);
+
     // sequence of children iterators.
     std::vector<std::unique_ptr<Iterator>> children_;
     // index variable to keep track of which file is being read.
     size_t indexOfCurChild;
-
 };
 
 /**

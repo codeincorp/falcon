@@ -102,7 +102,6 @@ TEST(SequencerTests, BasicTest)
 
     scanner->reopen();
     compareScannerOutput(expectedFields, scanner);
-    
 };
 
 TEST (SequencerTests, BasicTest2) 
@@ -244,5 +243,4 @@ TEST (SequencerTests, differentMetadatTest)
     children.emplace_back(makeIterator<MockScanner>(metadata1, lines1));
 
     EXPECT_THROW(makeIterator<Sequencer>(std::move(children)), DiscrepantOutputData);
-
 }
