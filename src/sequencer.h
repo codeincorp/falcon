@@ -54,7 +54,7 @@ private:
      * 
      * @param children: vector of children iterator.
      * Invariant: Children iterators must have same metadata in order to have equal output data format. 
-     * Otherwise, Sequencer should throw an exception.
+     * Otherwise, Sequencer will throw an exception.
      */
     Sequencer(std::vector<std::unique_ptr<Iterator>>&& children);
 
