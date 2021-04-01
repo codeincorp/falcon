@@ -6,12 +6,6 @@
 
 namespace codein {
 
-Limiter::Limiter(std::unique_ptr<Iterator>&& child, size_t limit)
-    : child_(std::move(child))
-    , limit_(limit)
-    , curOutput_(limit)
-{}
-
 std::optional<std::vector<std::any>> Limiter::processNext()
 {
     if (!hasMore()) {

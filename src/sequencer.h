@@ -32,7 +32,7 @@ public:
         return indexOfCurChild < children_.size();
     }
 
-    std::optional<std::vector<std::any>> processNext();
+    std::optional<std::vector<std::any>> processNext() override; 
 
     void close() override
     {

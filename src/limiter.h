@@ -5,7 +5,7 @@
 namespace codein {
 
 /**
- * @brief Limiter Iterator to limit number of output data from its child Iterator.
+ * @brief Limiter iterator to limit number of output data from its child iterator.
  */
 class Limiter : public Iterator {
 public:
@@ -28,7 +28,7 @@ public:
         return curOutput_ < limit_ && child_->hasMore();
     }
 
-    std::optional<std::vector<std::any>> processNext();
+    std::optional<std::vector<std::any>> processNext() override;
 
     void close() override
     {
@@ -44,17 +44,21 @@ public:
     
 private: 
     /**
-     * @brief Construct a new Limiter object.
+     * @brief Constructs a new Limiter object.
      * 
-     * @param child: child Iterator.
-     * @param limit: limit number of output data for child Iterator.
+     * @param child: child iterator.
+     * @param limit: limit number of output data for child iterator.
      */
-    Limiter(std::unique_ptr<Iterator>&& child, size_t limit);
+    Limiter(std::unique_ptr<Iterator>&& child, size_t limit)
+        : child_(std::move(child))
+        , limit_(limit)
+        , curOutput_(limit)
+    {}
 
     // child Iterator that will output data.
     std::unique_ptr<Iterator> child_;
     // limit of output data on the child Iterator.
-    size_t limit_;
+    const size_t limit_;
     // current number of already output data.
     size_t curOutput_;
 };

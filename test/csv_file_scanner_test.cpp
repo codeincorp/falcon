@@ -4,6 +4,7 @@
 #include "any_visitor.h"
 #include "csv_file_scanner.h"
 #include "to_any_converter.h"
+#include "util.h"
 
 using namespace std;
 using namespace codein;
@@ -520,7 +521,7 @@ TEST(CsvFileScannerTests, InvalidLinesInFileTest3) {
     EXPECT_EQ(i,kValidLinesInDataFile2);
 }
 
-TEST(CsvFileScannerTests, filterTest) 
+TEST(CsvFileScannerTests, FilterTest) 
 {
     // a == 2u
     Expression filterExpr {
@@ -545,7 +546,7 @@ TEST(CsvFileScannerTests, filterTest)
  
 }
 
-TEST(CsvFileScannerTests, filterTest1) 
+TEST(CsvFileScannerTests, FilterTest1) 
 {
     // b >= 10
     Expression filterExpr {
@@ -574,7 +575,7 @@ TEST(CsvFileScannerTests, filterTest1)
     EXPECT_EQ(i,kExpectedPassedLines);
 }
 
-TEST(CsvFileScannerTests, filterTest2)
+TEST(CsvFileScannerTests, FilterTest2)
 {
     // a == 1u && b >= 10
     Expression filterExpr {
@@ -620,7 +621,7 @@ TEST(CsvFileScannerTests, filterTest2)
     EXPECT_EQ(i, kExpectedPassedLines);
 }
 
-TEST(CsvFileScannerTests, filterTest3) 
+TEST(CsvFileScannerTests, FilterTest3) 
 {
     // d == "OTTOGI"
     Expression filterExpr {
@@ -649,7 +650,7 @@ TEST(CsvFileScannerTests, filterTest3)
     EXPECT_EQ(i , kExpectedPassedLines);
 }
 
-TEST(CsvFileScannerTests, filterTest4) 
+TEST(CsvFileScannerTests, FilterTest4) 
 {
     // e(string) == d(string) + "1"
     Expression filterExpr {
@@ -685,7 +686,7 @@ TEST(CsvFileScannerTests, filterTest4)
     EXPECT_EQ(i, kExpectedPassedLines);
 }
 
-TEST(CsvFileScannerTests, nonExistentFieldNameTest) 
+TEST(CsvFileScannerTests, NonExistentFieldNameTest) 
 {
     // calling non-existent field name for expression, should throw UnknownName exception
     Expression filterExpr {
@@ -700,7 +701,7 @@ TEST(CsvFileScannerTests, nonExistentFieldNameTest)
     EXPECT_THROW(scanner->processNext(), UnknownName);
 }
 
-TEST(CsvFileScannerTests, noPassFilterTest) 
+TEST(CsvFileScannerTests, NoPassFilterTest) 
 {
     // c < 0
     Expression filterExpr {
@@ -729,30 +730,7 @@ TEST(CsvFileScannerTests, noPassFilterTest)
     EXPECT_EQ(i, kExpectedPassedLines);
 }
 
-void verifyScannerOutput(const vector<vector<any>>& expectedFields, const unique_ptr<Iterator>& scanner) 
-{
-    const size_t kExpectedPassLines = expectedFields.size();
-    size_t i = 0;
-
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
-
-        if (row == std::nullopt) {
-            break;
-        }
-
-        auto val = row.value();
-        for (size_t k = 0; k < val.size(); ++k) {
-            EXPECT_TRUE(val[k] == expectedFields[i][k]);
-        }
-
-        ++i;
-    }
-
-    EXPECT_EQ(i, kExpectedPassLines);
-}
-
-TEST(CsvFileScannerTests, projectionsTest)
+TEST(CsvFileScannerTests, ProjectionsTest)
 {
     vector<vector<any>> expectedFields {
         {1u, 3},
@@ -775,12 +753,12 @@ TEST(CsvFileScannerTests, projectionsTest)
         {.opCode = OpCode::Ref, .leafOrChildren = std::any("c"s)},
     };
 
-    verifyScannerOutput(expectedFields, 
+    verifyIteratorOutput(expectedFields, 
         makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", kAlwaysTrue, projections)
     );
 }
 
-TEST(CsvFileScannerTests, projectionsTest2) {
+TEST(CsvFileScannerTests, ProjectionsTest2) {
     vector<vector<any>> expectedFields {
         {1u, 3, "OTTOGI"s},
         {2u, 2, "Nongshim"s},
@@ -803,7 +781,7 @@ TEST(CsvFileScannerTests, projectionsTest2) {
         {.opCode = OpCode::Ref, .leafOrChildren = std::any("d"s)},
     };
 
-    verifyScannerOutput(expectedFields, 
+    verifyIteratorOutput(expectedFields, 
         makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", kAlwaysTrue, projections)
     );
     
@@ -827,12 +805,12 @@ TEST(CsvFileScannerTests, projectionsTest2) {
         }
     };
 
-    verifyScannerOutput(expectedFields, 
+    verifyIteratorOutput(expectedFields, 
         makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr, projections)
     );
 }
 
-TEST(CsvFileScannerTests, projectionsTest3) 
+TEST(CsvFileScannerTests, ProjectionsTest3) 
 {
     // d == OTTOGI || e == Nongshim
     Expression filterExpr {
@@ -887,12 +865,12 @@ TEST(CsvFileScannerTests, projectionsTest3)
         {5, "OTTOGI"s, true},
     };
 
-    verifyScannerOutput(expectedFields, 
+    verifyIteratorOutput(expectedFields, 
         makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr, projections)
     );
 }
 
-TEST(CsvFileScannerTests, unKnownProjectionTest)
+TEST(CsvFileScannerTests, UnKnownProjectionTest)
 {
     // :)
     vector<Expression> projections {
@@ -931,7 +909,7 @@ TEST(CsvFileScannerTests, UnsupportedOperationProjectionsTest)
     EXPECT_THROW(scanner->processNext(), UnsupportedOperation);
 }
 
-TEST(CsvFileScannerTests, unorderedProjectionsTest)
+TEST(CsvFileScannerTests, UnorderedProjectionsTest)
 {
     vector<vector<any>> expectedFields {
         {"OTTOGI"s, 3, 1u},
@@ -955,7 +933,7 @@ TEST(CsvFileScannerTests, unorderedProjectionsTest)
         {.opCode = OpCode::Ref, .leafOrChildren = std::any("a"s)}
     };
 
-    verifyScannerOutput(expectedFields, 
+    verifyIteratorOutput(expectedFields, 
         makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", kAlwaysTrue, projections)
     );
 }

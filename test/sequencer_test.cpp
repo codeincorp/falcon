@@ -8,40 +8,10 @@
 #include "any_visitor.h"
 #include "sequencer.h"
 #include "mock_scanner.h"
+#include "util.h"
 
 using namespace std;
 using namespace codein;
-
-void compareScannerOutput(const vector<vector<any>>& expectedFields, const unique_ptr<Iterator>& scanner) 
-{
-    scanner->open();
-    const size_t kExpectedPassLines = expectedFields.size();
-    Metadata expectedMetadata = scanner->getMetadata();
-    size_t i = 0;
-
-    while (scanner->hasMore()) {
-        auto row = scanner->processNext();
-
-        if (row == std::nullopt) {
-            break;
-        }
-
-        auto val = row.value();
-        for (size_t k = 0; k < expectedMetadata.size(); ++k) {
-            const auto& actualType = val[k].type();
-            const auto& expectedType = expectedFields[i][k].type();
-            EXPECT_TRUE(actualType == expectedType)
-                << "actual type = " << actualType.name() << ", "
-                << "expected type = " << expectedType.name();
-            EXPECT_TRUE(val[k] == expectedFields[i][k]);
-        }
-
-        ++i;
-    }
-
-    EXPECT_FALSE(scanner->hasMore());
-    EXPECT_EQ(i, kExpectedPassLines);
-}
 
 TEST(SequencerTests, BasicTest) 
 {
@@ -96,12 +66,12 @@ TEST(SequencerTests, BasicTest)
         {56, "whatsoever"s, 4.16},
     };
     
-    auto scanner = makeIterator<Sequencer>(std::move(children));
-    EXPECT_FALSE(scanner->hasMore());
-    compareScannerOutput(expectedFields, scanner);
+    auto sequencer = makeIterator<Sequencer>(std::move(children));
+    EXPECT_FALSE(sequencer->hasMore());
+    verifyIteratorOutput(expectedFields, sequencer);
 
-    scanner->reopen();
-    compareScannerOutput(expectedFields, scanner);
+    sequencer->reopen();
+    verifyIteratorOutput(expectedFields, sequencer);
 };
 
 TEST (SequencerTests, BasicTest2) 
@@ -171,9 +141,9 @@ TEST (SequencerTests, BasicTest2)
         {45u, 3.2f, "productS"s}
     };
 
-    auto scanner = makeIterator<Sequencer>(std::move(children));
-    EXPECT_FALSE(scanner->hasMore());
-    compareScannerOutput(expectedFields, scanner);
+    auto sequencer = makeIterator<Sequencer>(std::move(children));
+    EXPECT_FALSE(sequencer->hasMore());
+    verifyIteratorOutput(expectedFields, sequencer);
 }
 
 TEST (SequencerTests, EmptyOutputFromChildTest) 
@@ -207,9 +177,9 @@ TEST (SequencerTests, EmptyOutputFromChildTest)
         {"string3"s, 15, 1.3}
     };
 
-    auto scanner = makeIterator<Sequencer>(std::move(children));
-    EXPECT_FALSE(scanner->hasMore());
-    compareScannerOutput(expectedFields, scanner);
+    auto sequencer = makeIterator<Sequencer>(std::move(children));
+    EXPECT_FALSE(sequencer->hasMore());
+    verifyIteratorOutput(expectedFields, sequencer);
 }
 
 TEST (SequencerTests, DifferentMetadatTest)
