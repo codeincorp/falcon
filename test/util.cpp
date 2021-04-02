@@ -11,7 +11,7 @@ using namespace std;
 using namespace codein;
 
 /**
- * @brief Compares expected data to actual data an iterator output.
+ * @brief Compares actual data that an iterator outputs to expected data.
  * 
  * @param expectedFields: expected fields of data if iterator operates as intended.
  * @param iterator: unique_ptr of iterator that will be tested.

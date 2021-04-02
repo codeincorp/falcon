@@ -58,7 +58,6 @@ private:
     {}
 
     std::unique_ptr<Iterator> child_;
-
     const size_t limit_;
     // current number of already output data.
     size_t curOutput_;
