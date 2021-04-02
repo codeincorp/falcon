@@ -65,13 +65,5 @@ TEST (LimiterTests, GreaterLimitThanChild)
     auto child = makeIterator<MockScanner>(metadata, lines);
     auto limiter = makeIterator<Limiter>(std::move(child), 7);
     EXPECT_FALSE(limiter->hasMore());
-    limiter->open();
-
-    size_t i = 0;
-    while (limiter->hasMore()) {
-        auto row = limiter->processNext();
-        ++i;
-    }
-    EXPECT_EQ(4, i);
-    EXPECT_FALSE(limiter->hasMore());
+    verifyIteratorOutput(expectedFields, limiter);
 }
