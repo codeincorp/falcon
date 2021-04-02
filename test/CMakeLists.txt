@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
 
 set(THIS csv_query_test)
 
@@ -57,7 +57,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/different_fields3.csv ${CMAKE_CU
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/different_fields3.txt ${CMAKE_CURRENT_BINARY_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/fileScanner_filter_test.csv ${CMAKE_CURRENT_BINARY_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/fileScanner_filter_test.txt ${CMAKE_CURRENT_BINARY_DIR})
-
 
 add_executable(${THIS} ${TEST_SOURCES})
 add_dependencies(${THIS} googletest)

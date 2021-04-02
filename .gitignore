@@ -33,3 +33,6 @@
 
 # CMake-generated files
 build/*
+
+# antlr generated files
+**/.antlr/**
