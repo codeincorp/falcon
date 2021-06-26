@@ -1,10 +1,17 @@
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <any>
 #include <cassert>
 #include <concepts>
 #include <functional>
 #include <string>
-#include <typeindex>
 #include <type_traits>
+#include <typeindex>
 
 #include "any_visitor.h"
 #include "to_any_converter.h"

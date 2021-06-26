@@ -1,8 +1,15 @@
-#include <vector>
-#include <fstream>
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
 
-#include "iterator.h"
+#include <fstream>
+#include <vector>
+
 #include "expression.h"
+#include "iterator.h"
 
 #pragma once
 
@@ -27,7 +34,7 @@ public:
         open();
     }
 
-    bool hasMore() const override 
+    bool hasNext() const override 
     {
         return indexOfCurChild < children_.size();
     }

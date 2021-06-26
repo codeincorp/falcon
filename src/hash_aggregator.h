@@ -1,14 +1,21 @@
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <any>
 #include <memory>
 #include <optional>
 #include <tuple>
-#include <vector>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
-#include "iterator.h"
 #include "any_visitor.h"
 #include "expression.h"
+#include "iterator.h"
 
 #pragma once
 
@@ -38,7 +45,7 @@ public:
         open();
     }
 
-    bool hasMore() const override
+    bool hasNext() const override
     {
         return it_ != hashStorage_.cend();
     }

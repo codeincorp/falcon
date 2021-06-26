@@ -1,3 +1,10 @@
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -5,11 +12,11 @@
 #include <string>
 #include <vector>
 
-#include "metadata.h"
-#include "iterator.h"
-#include "csv_file_scanner.h"
-#include "to_any_converter.h"
 #include "any_visitor.h"
+#include "csv_file_scanner.h"
+#include "iterator.h"
+#include "metadata.h"
+#include "to_any_converter.h"
 
 namespace codein {
 
@@ -145,7 +152,7 @@ void CsvFileScanner::checkError()
 
 std::optional<std::vector<std::any>> CsvFileScanner::processNext()
 {
-    if (!hasMore()) {
+    if (!hasNext()) {
         return std::nullopt;
     }
 

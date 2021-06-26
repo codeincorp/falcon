@@ -1,10 +1,17 @@
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <any>
 #include <memory>
 #include <optional>
 #include <vector>
 
-#include "iterator.h"
 #include "expression.h"
+#include "iterator.h"
 
 #pragma once
 
@@ -27,9 +34,9 @@ public:
         child_->reopen();
     }
 
-    bool hasMore() const override
+    bool hasNext() const override
     {
-        return child_->hasMore();
+        return child_->hasNext();
     }
 
     std::optional<std::vector<std::any>> processNext() override;

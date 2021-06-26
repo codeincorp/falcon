@@ -1,3 +1,10 @@
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <any>
 #include <cassert>
 #include <memory>
@@ -5,9 +12,9 @@
 #include <utility>
 #include <vector>
 
-#include "iterator.h"
 #include "expression.h"
 #include "hash_aggregator.h"
+#include "iterator.h"
 
 namespace codein {
 
@@ -127,7 +134,7 @@ void HashAggregator::open()
 {
     child_->open();
 
-    while (child_->hasMore()) {
+    while (child_->hasNext()) {
         auto optInput = child_->processNext();
         if (!optInput) {
             return;

@@ -1,8 +1,15 @@
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "iterator.h"
 #include "filter.h"
+#include "iterator.h"
 #include "mock_scanner.h"
 
 using namespace std;
@@ -37,7 +44,7 @@ TEST_F(FilterTests, BasicTest)
     auto filter = makeIterator<Filter>(move(mockScanner), filterExpr);
 
     filter->open();
-    EXPECT_TRUE(filter->hasMore());
+    EXPECT_TRUE(filter->hasNext());
 
     auto data = filter->processNext();
     EXPECT_TRUE(data.has_value());
@@ -47,7 +54,7 @@ TEST_F(FilterTests, BasicTest)
     EXPECT_EQ(any_cast<float>(val[1]), 2.2f);
     EXPECT_EQ(any_cast<string>(val[2]), "Alex Smith"s);
 
-    EXPECT_TRUE(filter->hasMore());
+    EXPECT_TRUE(filter->hasNext());
 
     data = filter->processNext();
     EXPECT_FALSE(data.has_value());
@@ -65,7 +72,7 @@ TEST_F(FilterTests, PassThruTest)
     auto filter = makeIterator<Filter>(move(mockScanner), filterExpr);
 
     filter->open();
-    EXPECT_TRUE(filter->hasMore());
+    EXPECT_TRUE(filter->hasNext());
 
     auto data = filter->processNext();
     EXPECT_TRUE(data.has_value());
@@ -75,7 +82,7 @@ TEST_F(FilterTests, PassThruTest)
     EXPECT_EQ(any_cast<float>(val[1]), 1.1f);
     EXPECT_EQ(any_cast<string>(val[2]), "John Smith"s);
 
-    EXPECT_TRUE(filter->hasMore());
+    EXPECT_TRUE(filter->hasNext());
     data = filter->processNext();
     EXPECT_TRUE(data.has_value());
 
@@ -84,7 +91,7 @@ TEST_F(FilterTests, PassThruTest)
     EXPECT_EQ(any_cast<float>(val2[1]), 2.2f);
     EXPECT_EQ(any_cast<string>(val2[2]), "Alex Smith"s);
 
-    EXPECT_TRUE(filter->hasMore());
+    EXPECT_TRUE(filter->hasNext());
     data = filter->processNext();
 
     const auto& val3 = data.value();
@@ -108,11 +115,11 @@ TEST_F(FilterTests, NoDataTest)
     auto filter = makeIterator<Filter>(move(mockScanner), filterExpr);
 
     filter->open();
-    EXPECT_TRUE(filter->hasMore());
+    EXPECT_TRUE(filter->hasNext());
 
     auto data = filter->processNext();
     EXPECT_FALSE(data.has_value());
-    EXPECT_FALSE(filter->hasMore());
+    EXPECT_FALSE(filter->hasNext());
 }
 
 TEST_F(FilterTests, InvalidFilterTest)

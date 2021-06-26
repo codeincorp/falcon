@@ -1,8 +1,15 @@
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <gtest/gtest.h>
 
-#include "metadata.h"
 #include "any_visitor.h"
 #include "csv_file_scanner.h"
+#include "metadata.h"
 #include "to_any_converter.h"
 #include "util.h"
 
@@ -192,7 +199,7 @@ TEST(CsvFileScannerTests, BasicTest)
     auto scanner = makeIterator<CsvFileScanner>("metadata_basic_test.txt", "data_basic_test.csv");
     
     size_t i = 0;
-    while (scanner->hasMore()) {
+    while (scanner->hasNext()) {
         auto row = scanner->processNext();
 
         if (row == std::nullopt) {
@@ -231,7 +238,7 @@ TEST(CsvFileScannerTests, FileNameConstructorTest)
     EXPECT_TRUE(scanner->getMetadata() == expectedMetadata);
     
     size_t i = 0;
-    while (scanner->hasMore()) {
+    while (scanner->hasNext()) {
         auto row = scanner->processNext();
         
         if (row == std::nullopt) {
@@ -283,7 +290,7 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
     EXPECT_TRUE(scanner->getMetadata() == expectedMetadata1);
     
     size_t i = 0;
-    while (scanner->hasMore()) {
+    while (scanner->hasNext()) {
         auto row = scanner->processNext();
 
         if (row == std::nullopt) {
@@ -325,7 +332,7 @@ TEST(CsvFileScannerTests, FileNameConstructorTest2)
     EXPECT_TRUE(scanner->getMetadata() == expectedMetadata2);
     
     i = 0;
-    while (scanner->hasMore()) {
+    while (scanner->hasNext()) {
         auto row = scanner->processNext();
 
         if (row == std::nullopt) {   
@@ -399,7 +406,7 @@ TEST(CsvFileScannerTests, InvalidLinesInFileTest1) {
     const size_t kValidLinesInDataFile = 14;
     size_t i = 0;
 
-    while (scanner->hasMore()) {
+    while (scanner->hasNext()) {
         // 14 = number of correct lines in the file
         if (i == 14) {
             EXPECT_THROW(scanner->processNext(), WrongMetadata);
@@ -452,7 +459,7 @@ TEST(CsvFileScannerTests, InvalidLinesInFileTest2) {
     const size_t kValidLinesInDataFile1 = 8;
     size_t i = 0;
 
-    while (scanner->hasMore()) {
+    while (scanner->hasNext()) {
         auto row = scanner->processNext();
 
         if (row == std::nullopt) {
@@ -497,7 +504,7 @@ TEST(CsvFileScannerTests, InvalidLinesInFileTest3) {
     const size_t kValidLinesInDataFile2 = 26;
     size_t i = 0;
 
-    while (scanner->hasMore()) {
+    while (scanner->hasNext()) {
         auto row = scanner->processNext();
 
         if (row == std::nullopt) {
@@ -534,7 +541,7 @@ TEST(CsvFileScannerTests, FilterTest)
 
     auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
 
-    while (scanner->hasMore()) {
+    while (scanner->hasNext()) {
         auto row = scanner->processNext();
 
         if (row == std::nullopt) {
@@ -561,7 +568,7 @@ TEST(CsvFileScannerTests, FilterTest1)
     auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
     size_t i = 0;
 
-    while (scanner->hasMore()) {
+    while (scanner->hasNext()) {
         auto row = scanner->processNext();
 
         if (row == std::nullopt) {
@@ -606,7 +613,7 @@ TEST(CsvFileScannerTests, FilterTest2)
     auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
     size_t i = 0;
 
-    while (scanner->hasMore()) {
+    while (scanner->hasNext()) {
         auto row = scanner->processNext();
 
         if (row == std::nullopt) {
@@ -636,7 +643,7 @@ TEST(CsvFileScannerTests, FilterTest3)
     auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
     size_t i = 0;
 
-    while (scanner->hasMore()) {
+    while (scanner->hasNext()) {
         auto row = scanner->processNext();
 
         if (row == std::nullopt) {
@@ -672,7 +679,7 @@ TEST(CsvFileScannerTests, FilterTest4)
     auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
     size_t i = 0;
 
-    while (scanner->hasMore()) {
+    while (scanner->hasNext()) {
         auto row = scanner->processNext();
 
         if (row == std::nullopt) {
@@ -716,7 +723,7 @@ TEST(CsvFileScannerTests, NoPassFilterTest)
     auto scanner = makeIterator<CsvFileScanner>("fileScanner_filter_test.txt", "fileScanner_filter_test.csv", filterExpr);
     size_t i = 0;
 
-    while (scanner->hasMore()) {
+    while (scanner->hasNext()) {
         auto row = scanner->processNext();
         EXPECT_TRUE(row == std::nullopt);
 

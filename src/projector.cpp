@@ -1,3 +1,10 @@
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <any>
 #include <cassert>
 #include <memory>
@@ -18,7 +25,7 @@ Projector::Projector(std::unique_ptr<Iterator>&& child, const std::vector<Expres
 
 std::optional<std::vector<std::any>> Projector::processNext()
 {
-    if (!child_->hasMore()) {
+    if (!child_->hasNext()) {
         return std::nullopt;
     }
 

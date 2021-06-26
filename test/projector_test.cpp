@@ -1,15 +1,22 @@
-#include <gtest/gtest.h>
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <fstream>
+#include <gtest/gtest.h>
 #include <string>
 #include <typeindex>
 #include <vector>
 
-#include "metadata.h"
-#include "expression.h"
-#include "to_any_converter.h"
 #include "any_visitor.h"
 #include "csv_file_scanner.h"
+#include "expression.h"
+#include "metadata.h"
 #include "projector.h"
+#include "to_any_converter.h"
 
 using namespace std;
 using namespace codein;
@@ -59,7 +66,7 @@ TEST_F(ProjectorTests, SanityTest)
     auto projector = makeIterator<Projector>(std::move(scanner), projections, metadata);
 
     projector->open();
-    ASSERT_TRUE(projector->hasMore());
+    ASSERT_TRUE(projector->hasNext());
     ASSERT_TRUE(projector->getMetadata() == metadata);
 
     optional<vector<any>> actual = projector->processNext();
@@ -98,7 +105,7 @@ TEST_F(ProjectorTests, SelectionTest)
     auto projector = makeIterator<Projector>(std::move(scanner), projections, expectedMetadata);
 
     projector->open();
-    ASSERT_TRUE(projector->hasMore());
+    ASSERT_TRUE(projector->hasNext());
     ASSERT_TRUE(projector->getMetadata() == expectedMetadata);
 
     optional<vector<any>> actual = projector->processNext();
@@ -158,7 +165,7 @@ TEST_F(ProjectorTests, ProjExprTest)
     auto projector = makeIterator<Projector>(std::move(scanner), projections, expectedMetadata);
 
     projector->open();
-    ASSERT_TRUE(projector->hasMore());
+    ASSERT_TRUE(projector->hasNext());
     ASSERT_TRUE(projector->getMetadata() == expectedMetadata);
 
     optional<vector<any>> actual = projector->processNext();

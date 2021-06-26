@@ -1,13 +1,20 @@
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <any>
+#include <fstream>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
-#include <fstream>
 
-#include "metadata.h"
-#include "iterator.h"
 #include "expression.h"
+#include "iterator.h"
+#include "metadata.h"
 
 #pragma once
 
@@ -56,7 +63,7 @@ public:
         errorLines_= 0;
     }
 
-    bool hasMore() const override
+    bool hasNext() const override
     {
         return !dfs_.eof();
     }

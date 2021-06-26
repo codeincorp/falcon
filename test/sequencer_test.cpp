@@ -1,13 +1,20 @@
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <gtest/gtest.h>
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 
+#include "any_visitor.h"
 #include "iterator.h"
 #include "metadata.h"
-#include "any_visitor.h"
-#include "sequencer.h"
 #include "mock_scanner.h"
+#include "sequencer.h"
 #include "util.h"
 
 using namespace std;
@@ -67,7 +74,7 @@ TEST(SequencerTests, BasicTest)
     };
     
     auto sequencer = makeIterator<Sequencer>(std::move(children));
-    EXPECT_FALSE(sequencer->hasMore());
+    EXPECT_FALSE(sequencer->hasNext());
     verifyIteratorOutput(expectedFields, sequencer);
 
     sequencer->reopen();
@@ -142,7 +149,7 @@ TEST (SequencerTests, BasicTest2)
     };
 
     auto sequencer = makeIterator<Sequencer>(std::move(children));
-    EXPECT_FALSE(sequencer->hasMore());
+    EXPECT_FALSE(sequencer->hasNext());
     verifyIteratorOutput(expectedFields, sequencer);
 }
 
@@ -178,7 +185,7 @@ TEST (SequencerTests, EmptyOutputFromChildTest)
     };
 
     auto sequencer = makeIterator<Sequencer>(std::move(children));
-    EXPECT_FALSE(sequencer->hasMore());
+    EXPECT_FALSE(sequencer->hasNext());
     verifyIteratorOutput(expectedFields, sequencer);
 }
 

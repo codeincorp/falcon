@@ -1,5 +1,12 @@
-#include <gtest/gtest.h>
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <any>
+#include <gtest/gtest.h>
 #include <memory>
 #include <vector>
 
@@ -23,7 +30,7 @@ void verifyIteratorOutput (
     const size_t kExpectedPassLines = expectedFields.size();
     size_t i = 0;
 
-    while (iterator->hasMore()) {
+    while (iterator->hasNext()) {
         auto row = iterator->processNext();
 
         if (row == std::nullopt) {
@@ -43,7 +50,7 @@ void verifyIteratorOutput (
         ++i;
     }
 
-    EXPECT_FALSE(iterator->hasMore());
+    EXPECT_FALSE(iterator->hasNext());
     EXPECT_TRUE(iterator->processNext() == std::nullopt);
     EXPECT_EQ(i, kExpectedPassLines);
 }
