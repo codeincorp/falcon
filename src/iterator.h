@@ -1,3 +1,10 @@
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <any>
 #include <memory>
 #include <optional>
@@ -30,12 +37,12 @@ struct Iterator {
     virtual void reopen() = 0;
 
     /**
-     * @brief Check whether there's more data to process.
+     * @brief Check whether there's next data to process.
      * 
-     * @return true if there's more data to process.
+     * @return true if there's next data to process.
      * @return false otherwise. 
      */
-    virtual bool hasMore() const = 0;
+    virtual bool hasNext() const = 0;
 
     /**
      * @brief Process the next data and return the data

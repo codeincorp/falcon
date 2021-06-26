@@ -1,3 +1,10 @@
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <gtest/gtest.h>
 #include <algorithm>
 #include <any>
@@ -60,7 +67,7 @@ struct HashAggregatorTests : public ::testing::Test {
 
         auto mockScanner = makeIterator<MockScanner>(metadata, lines);
         mockScanner->open();
-        while (mockScanner->hasMore()) {
+        while (mockScanner->hasNext()) {
             auto optData = mockScanner->processNext();
             if (!optData) {
                 break;
@@ -118,7 +125,7 @@ TEST_F(HashAggregatorTests, BasicTest)
     hashAggregator->open();
     size_t n = 0;
     const size_t expectedNumData = 7;
-    while (hashAggregator->hasMore()) {
+    while (hashAggregator->hasNext()) {
         auto optData = hashAggregator->processNext();
         if (!optData) {
             break;
@@ -183,7 +190,7 @@ TEST_F(HashAggregatorTests, MaxTest)
     hashAggregator->open();
     size_t n = 0;
     const size_t expectedNumData = 7;
-    while (hashAggregator->hasMore()) {
+    while (hashAggregator->hasNext()) {
         auto optData = hashAggregator->processNext();
         if (!optData) {
             break;
@@ -252,7 +259,7 @@ TEST_F(HashAggregatorTests, MinTest)
     hashAggregator->open();
     size_t n = 0;
     const size_t expectedNumData = 7;
-    while (hashAggregator->hasMore()) {
+    while (hashAggregator->hasNext()) {
         auto optData = hashAggregator->processNext();
         if (!optData) {
             break;
@@ -314,7 +321,7 @@ TEST_F(HashAggregatorTests, SumTest)
     hashAggregator->open();
     size_t n = 0;
     const size_t expectedNumData = 7;
-    while (hashAggregator->hasMore()) {
+    while (hashAggregator->hasNext()) {
         auto optData = hashAggregator->processNext();
         if (!optData) {
             break;
@@ -424,7 +431,7 @@ TEST_F(HashAggregatorTests, ProjOverHashAggTest)
     projector->open();
     size_t n = 0;
     const size_t expectedNumData = 7;
-    while (projector->hasMore()) {
+    while (projector->hasNext()) {
         auto optData = projector->processNext();
         if (!optData) {
             break;
@@ -530,7 +537,7 @@ TEST_F(HashAggregatorTests, AverageTest)
     hashAggregator->open();
     size_t n = 0;
     const size_t expectedNumData = 7;
-    while (hashAggregator->hasMore()) {
+    while (hashAggregator->hasNext()) {
         auto optData = hashAggregator->processNext();
         if (!optData) {
             break;

@@ -1,3 +1,10 @@
+/**
+ * Copyright (C) 2021-present Codein Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of
+ * BSD-3-Clause License which can be found at the root directory of this repository.
+ */
+
 #include <gtest/gtest.h>
 #include <memory>
 #include <vector>
@@ -38,7 +45,7 @@ TEST (LimiterTests, BasicTest)
 
     auto child = makeIterator<MockScanner>(metadata, lines);
     auto limiter = makeIterator<Limiter>(std::move(child), 4);
-    EXPECT_FALSE(limiter->hasMore());
+    EXPECT_FALSE(limiter->hasNext());
     verifyIteratorOutput(expectedFields, limiter);
 }
 
@@ -64,6 +71,6 @@ TEST (LimiterTests, GreaterLimitThanChild)
 
     auto child = makeIterator<MockScanner>(metadata, lines);
     auto limiter = makeIterator<Limiter>(std::move(child), 7);
-    EXPECT_FALSE(limiter->hasMore());
+    EXPECT_FALSE(limiter->hasNext());
     verifyIteratorOutput(expectedFields, limiter);
 }

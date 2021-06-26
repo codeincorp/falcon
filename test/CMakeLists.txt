@@ -1,3 +1,10 @@
+###################################################################################################
+# Copyright (C) 2021-present Codein Inc.
+#
+# This program is free software: you can redistribute it and/or modify it under the terms of
+# BSD-3-Clause License which can be found at the root directory of this repository.
+###################################################################################################
+
 cmake_minimum_required(VERSION 3.0.0)
 
 set(THIS csv_query_test)
