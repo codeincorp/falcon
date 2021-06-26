@@ -7,13 +7,13 @@
 
 #include <gtest/gtest.h>
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 
-#include "iterator.h"
-#include "metadata.h"
 #include "any_visitor.h"
+#include "iterator.h"
 #include "limiter.h"
+#include "metadata.h"
 #include "mock_scanner.h"
 #include "util.h"
 

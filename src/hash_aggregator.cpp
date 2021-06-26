@@ -12,9 +12,9 @@
 #include <utility>
 #include <vector>
 
-#include "iterator.h"
 #include "expression.h"
 #include "hash_aggregator.h"
+#include "iterator.h"
 
 namespace codein {
 

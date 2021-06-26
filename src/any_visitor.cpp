@@ -10,8 +10,8 @@
 #include <concepts>
 #include <functional>
 #include <string>
-#include <typeindex>
 #include <type_traits>
+#include <typeindex>
 
 #include "any_visitor.h"
 #include "to_any_converter.h"

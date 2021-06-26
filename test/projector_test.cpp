@@ -5,18 +5,18 @@
  * BSD-3-Clause License which can be found at the root directory of this repository.
  */
 
-#include <gtest/gtest.h>
 #include <fstream>
+#include <gtest/gtest.h>
 #include <string>
 #include <typeindex>
 #include <vector>
 
-#include "metadata.h"
-#include "expression.h"
-#include "to_any_converter.h"
 #include "any_visitor.h"
 #include "csv_file_scanner.h"
+#include "expression.h"
+#include "metadata.h"
 #include "projector.h"
+#include "to_any_converter.h"
 
 using namespace std;
 using namespace codein;

@@ -12,11 +12,11 @@
 #include <string>
 #include <vector>
 
-#include "metadata.h"
-#include "iterator.h"
-#include "csv_file_scanner.h"
-#include "to_any_converter.h"
 #include "any_visitor.h"
+#include "csv_file_scanner.h"
+#include "iterator.h"
+#include "metadata.h"
+#include "to_any_converter.h"
 
 namespace codein {
 

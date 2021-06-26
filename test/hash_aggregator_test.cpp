@@ -5,18 +5,18 @@
  * BSD-3-Clause License which can be found at the root directory of this repository.
  */
 
-#include <gtest/gtest.h>
 #include <algorithm>
 #include <any>
+#include <gtest/gtest.h>
 #include <memory>
 #include <numeric>
 #include <unordered_map>
 #include <utility>
 
-#include "iterator.h"
 #include "hash_aggregator.h"
-#include "projector.h"
+#include "iterator.h"
 #include "mock_scanner.h"
+#include "projector.h"
 
 using namespace std;
 using namespace codein;

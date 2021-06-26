@@ -9,8 +9,8 @@
 #include <memory>
 #include <optional>
 
-#include "iterator.h"
 #include "csv_file_scanner.h"
+#include "iterator.h"
 
 namespace codein {
 

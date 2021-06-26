@@ -7,9 +7,9 @@
 
 #include <gtest/gtest.h>
 
-#include "metadata.h"
 #include "any_visitor.h"
 #include "csv_file_scanner.h"
+#include "metadata.h"
 #include "to_any_converter.h"
 #include "util.h"
 

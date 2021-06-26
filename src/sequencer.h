@@ -5,11 +5,11 @@
  * BSD-3-Clause License which can be found at the root directory of this repository.
  */
 
-#include <vector>
 #include <fstream>
+#include <vector>
 
-#include "iterator.h"
 #include "expression.h"
+#include "iterator.h"
 
 #pragma once
 

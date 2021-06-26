@@ -10,8 +10,8 @@
 #include <optional>
 #include <vector>
 
-#include "iterator.h"
 #include "expression.h"
+#include "iterator.h"
 
 #pragma once
 

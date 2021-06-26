@@ -5,15 +5,15 @@
  * BSD-3-Clause License which can be found at the root directory of this repository.
  */
 
-#include <gtest/gtest.h>
 #include <any>
+#include <gtest/gtest.h>
 #include <typeinfo>
 #include <variant>
 #include <vector>
 
+#include "any_visitor.h"
 #include "expression.h"
 #include "metadata.h"
-#include "any_visitor.h"
 
 using namespace std;
 using namespace codein;

@@ -8,8 +8,8 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "iterator.h"
 #include "filter.h"
+#include "iterator.h"
 #include "mock_scanner.h"
 
 using namespace std;
