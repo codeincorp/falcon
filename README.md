@@ -15,4 +15,5 @@ Falcon project has the goal to develope the world-fastest analytical engine that
 - It supports bool, int, uint, float, double, and string types in expressions
 - It's in very early stage and active development
 - It dost not have any client drivers or user-facling query languages
+  - The team has a plan to define a query language using antlr
 - It can be used as a library like embedded analytical engine for now
