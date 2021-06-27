@@ -10,6 +10,9 @@ Falcon project has the goal to develope the world-fastest analytical engine that
   - Theoretically, it can be built and run on any Linux-flavors but not tested except WSL Ubuntu 20.04
 
 # Status
+- It supports CSV file source, project, limit, filter, sequence and hash aggregation
+- It supports constants, variables, logical expressions, comparisons, 4 arithmetic expression, conditional tenary expression, and conversion expression
+- It supports bool, int, uint, float, double, and string types in expressions
 - It's in very early stage and active development
 - It dost not have any client drivers or user-facling query languages
 - It can be used as a library like embedded analytical engine for now
