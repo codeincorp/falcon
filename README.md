@@ -7,7 +7,7 @@ Falcon project has the goal to develope the world-fastest analytical engine that
 - Test: GTest & CTest
 - IDE: Visual Studio Code
 - Platform: WSL Ubuntu 20.04
-  - Theoretically, it can be built and run on any Linux-flavors but not tested
+  - Theoretically, it can be built and run on any Linux-flavors but not tested except WSL Ubuntu 20.04
 
 # Status
 - It's in very early stage and active development
